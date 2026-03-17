@@ -1,46 +1,71 @@
 import { useState } from "react"
+import { sendMessage } from "../../services/chatService"
 
-function Chatbot(){
+function Chatbot() {
 
-const [messages,setMessages] = useState([])
-const [input,setInput] = useState("")
+    const [messages, setMessages] = useState([])
+    const [input, setInput] = useState("")
 
-const sendMessage = ()=>{
+    const handleSendMessage = async () => {
 
-setMessages([...messages,{text:input,user:"me"}])
+        if (!input) return
 
-setInput("")
+        // mensaje del usuario
+        setMessages(prev => [...prev, { text: input, user: "me" }])
 
-}
+        try {
 
-return(
+            const response = await sendMessage(input)
 
-<div>
+            // respuesta del bot
+            setMessages(prev => [
+                ...prev,
+                { text: input, user: "me" },
+                { text: response.respuesta, user: "bot" }
+            ])
 
-<h1>Chatbot AVIS</h1>
+        } catch {
 
-<div>
+            setMessages(prev => [
+                ...prev,
+                { text: "Error conectando con el servidor", user: "bot" }
+            ])
 
-{messages.map((msg,i)=>(
-<p key={i}>{msg.text}</p>
-))}
+        }
 
-</div>
+        setInput("")
 
-<input
-value={input}
-onChange={(e)=>setInput(e.target.value)}
-/>
+    }
 
-<button onClick={sendMessage}>
+    return (
 
-Enviar
+        <div>
 
-</button>
+            <h1>Chatbot AVIS</h1>
 
-</div>
+            <div>
 
-)
+                {messages.map((msg, i) => (
+                    <p key={i}>
+                        <b>{msg.user === "me" ? "Tú:" : "AVIS:"}</b> {msg.text}
+                    </p>
+                ))}
+
+            </div>
+
+            <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Escribe tu pregunta"
+            />
+
+            <button onClick={handleSendMessage}>
+                Enviar
+            </button>
+
+        </div>
+
+    )
 
 }
 

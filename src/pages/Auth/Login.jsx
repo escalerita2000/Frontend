@@ -23,7 +23,7 @@ password
 
 })
 
-login(response.data.user)
+login(response.user)
 
 alert("Login exitoso")
 
