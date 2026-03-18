@@ -1,18 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Sidebar from "../../components/Sidebar/Sidebar";
+import { sendMessage as apiSendMessage, getChatHistory } from "../../services/chatService";
 
 const SUGGESTIONS = [
   "¿Cómo puedo crear una cuenta?",
   "¿Cuáles son los planes disponibles?",
   "¿Cómo contacto a soporte?",
   "¿Qué es AVIS?",
-];
-
-const BOT_RESPONSES = [
-  "Gracias por tu pregunta. Nuestro equipo de soporte AVIS está aquí para ayudarte con lo que necesites.",
-  "Entiendo tu consulta. En AVIS trabajamos para darte la mejor experiencia posible.",
-  "Esa es una excelente pregunta. Permíteme buscarte la información más actualizada sobre ese tema.",
-  "Claro, con gusto te ayudo. El futuro es AVIS y estamos contigo en cada paso.",
 ];
 
 let chatCounter = 1;
@@ -36,6 +30,36 @@ export default function Chatbot() {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const historyResponse = await getChatHistory();
+        const history = historyResponse.data || historyResponse;
+        if (history && Array.isArray(history)) {
+          const msgs = history.map((msg, index) => ({
+            id: msg.id || Date.now() + index,
+            role: msg.role === 'user' ? 'user' : 'bot',
+            text: msg.content || msg.message || msg.text || "",
+            time: msg.created_at ? new Date(msg.created_at).toLocaleTimeString("es-CO", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }) : "",
+          }));
+          if (msgs.length > 0) {
+            const chat = createNewChat();
+            chat.messages = msgs;
+            chat.title = "Historial de Chat";
+            setChats([chat]);
+            setActiveChatId(chat.id);
+          }
+        }
+      } catch (error) {
+        console.error("Error cargando historial", error);
+      }
+    };
+    fetchHistory();
+  }, []);
 
   const activeChat = chats.find((c) => c.id === activeChatId) || null;
 
@@ -121,7 +145,7 @@ export default function Chatbot() {
   );
 
   const sendMessage = useCallback(
-    (text) => {
+    async (text) => {
       const trimmed = text.trim();
       if (!trimmed) return;
 
@@ -164,11 +188,13 @@ export default function Chatbot() {
       setShowSuggestions(false);
       setIsTyping(true);
 
-      setTimeout(() => {
+      try {
+        const response = await apiSendMessage(trimmed);
+        const respuestaBot = response.data ? response.data.respuesta : response.respuesta;
         const botMsg = {
           id: Date.now() + 1,
           role: "bot",
-          text: BOT_RESPONSES[Math.floor(Math.random() * BOT_RESPONSES.length)],
+          text: respuestaBot || "Sin respuesta",
           time: new Date().toLocaleTimeString("es-CO", {
             hour: "2-digit",
             minute: "2-digit",
@@ -181,8 +207,26 @@ export default function Chatbot() {
               : c
           )
         );
+      } catch (error) {
+        const botMsg = {
+          id: Date.now() + 1,
+          role: "bot",
+          text: "Error conectando con el servidor",
+          time: new Date().toLocaleTimeString("es-CO", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        };
+        setChats((prev) =>
+          prev.map((c) =>
+            c.id === targetId
+              ? { ...c, messages: [...c.messages, botMsg] }
+              : c
+          )
+        );
+      } finally {
         setIsTyping(false);
-      }, 1200 + Math.random() * 800);
+      }
     },
     [activeChatId]
   );
