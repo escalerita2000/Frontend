@@ -1,0 +1,58 @@
+/* src/components/DashboardRightMenu/DashboardRightMenu.css */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&display=swap');
+
+.db-right-menu {
+  width: 190px;
+  flex-shrink: 0;       /* ← nunca se encoge */
+  height: 100%;         /* ← ocupa toda la altura del body */
+  background: #0f1e0e;
+  border-left: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* menú centrado verticalmente */
+}
+
+.db-right-menu__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.db-right-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 24px;
+  text-decoration: none;
+  color: rgba(255,255,255,0.5);
+  transition: background 0.18s, color 0.18s;
+  position: relative;
+  border-left: 3px solid transparent;
+}
+
+.db-right-menu__item:hover {
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.8);
+}
+
+.db-right-menu__item.active {
+  color: white;
+  background: rgba(93,170,79,0.06);
+  border-left-color: #5daa4f;
+}
+
+.db-right-menu__icon {
+  width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: inherit;
+}
+.db-right-menu__icon svg { width: 16px; height: 16px; }
+
+.db-right-menu__label {
+  font-family: 'Cinzel', serif;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}

@@ -1,20 +1,18 @@
-import { Outlet } from "react-router-dom"
-import Sidebar from "../components/Sidebar/Sidebar"
-import Configuration from "../pages/Dashboard/Configuration"
-import Account from "../pages/Dashboard/Account"
+import { Outlet } from "react-router-dom";
+import Sidebar from "../components/Sidebar/Sidebar";
 
 function MainLayout() {
   return (
-    <div className="chatbot-root"> {/* 👈 CAMBIO AQUÍ */}
+    <div className="chat-layout">
+      {/* Sidebar del historial de chats — SOLO aparece en rutas del chatbot */}
+      <Sidebar />
 
-        <Sidebar/>
-
-      <main className="main">
+      <main className="chat-layout__main">
+        {/* Aquí se renderiza: Chatbot.jsx | ChatbotInvitado.jsx | ChatHistory.jsx */}
         <Outlet />
       </main>
-
     </div>
-  )
+  );
 }
 
-export default MainLayout
+export default MainLayout;

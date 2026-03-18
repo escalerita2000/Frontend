@@ -1,0 +1,122 @@
+/* src/components/DashboardNavbar/DashboardNavbar.css */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap');
+
+.db-nav {
+  height: 52px;
+  background: #0d0d0d;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  z-index: 50;
+}
+
+/* ── Left ── */
+.db-nav__left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.db-nav__user-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgba(255,255,255,0.75);
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s, background 0.2s;
+}
+.db-nav__user-btn:hover {
+  color: white;
+  background: rgba(255,255,255,0.07);
+}
+.db-nav__user-btn svg {
+  width: 26px; height: 26px;
+}
+
+/* ── Center brand ── */
+.db-nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.db-nav__logo {
+  width: 28px; height: 28px;
+  animation: rotateIcon 30s linear infinite;
+}
+.db-nav__logo svg { width: 100%; height: 100%; }
+
+@keyframes rotateIcon {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.db-nav__title {
+  font-family: 'Cinzel', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.18em;
+}
+
+/* ── Right pagination ── */
+.db-nav__pagination {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.db-nav__pg-arrow {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgba(255,255,255,0.5);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+}
+.db-nav__pg-arrow:hover {
+  color: white;
+  background: rgba(255,255,255,0.07);
+}
+.db-nav__pg-arrow svg { width: 14px; height: 14px; }
+
+.db-nav__pg-num {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.55);
+  text-decoration: none;
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 6px;
+  transition: background 0.18s, color 0.18s;
+  letter-spacing: 0.05em;
+}
+.db-nav__pg-num:hover {
+  color: white;
+  background: rgba(255,255,255,0.08);
+}
+.db-nav__pg-num.active {
+  color: white;
+  background: rgba(255,255,255,0.12);
+}
+
+.db-nav__pg-dots {
+  font-size: 13px;
+  color: rgba(255,255,255,0.35);
+  padding: 0 2px;
+}

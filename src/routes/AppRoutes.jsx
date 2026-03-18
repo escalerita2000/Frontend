@@ -73,15 +73,12 @@ return(
         />
 
 
-        {/* Ruta 404 */}
+        {/* ── 404 ────────────────────────────────────────────────────────── */}
         <Route path="*" element={<NotFound />} />
 
-    </Routes>
-
-</BrowserRouter>
-
-)
-
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default AppRoutes
+export default AppRoutes;

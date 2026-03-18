@@ -1,0 +1,39 @@
+/* src/layouts/DashboardLayout.css */
+
+/* Reset global necesario — asegúrate de que tu index.css o global.css tenga esto */
+/* Si no lo tienes, agrégalo aquí temporalmente */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { height: 100%; overflow: hidden; }
+
+.db-layout {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #1a3318;
+}
+
+/* Navbar ocupa su altura natural (~52px) */
+/* El body ocupa TODO lo que queda debajo */
+.db-layout__body {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  min-height: 0; /* ← crítico para que flex no desborde */
+}
+
+/* El main ocupa todo el ancho menos el panel derecho */
+.db-layout__main {
+  flex: 1;
+  overflow-y: auto;
+  min-width: 0; /* ← evita overflow horizontal */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+.db-layout__main::-webkit-scrollbar { width: 3px; }
+.db-layout__main::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+}
