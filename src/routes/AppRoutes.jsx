@@ -1,63 +1,77 @@
-// src/routes/AppRoutes.jsx
+import { BrowserRouter, Routes, Route } from "react-router-dom"
 
-import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// ── Layouts ───────────────────────────────────────────────────────────────────
-import MainLayout      from "../layouts/MainLayout";
-import DashboardLayout from "../layouts/DashboardLayout";
 
-// ── Páginas sin layout (standalone) ──────────────────────────────────────────
-import Home            from "../pages/Home/Home";
-import Login           from "../pages/Auth/Login";
-import RecoverPassword from "../pages/Auth/RecoverPassword";
-import ResetPassword   from "../pages/Auth/ResetPassword";
-import NotFound        from "../pages/NotFound/NotFound";
+import Home from "../pages/Home/Home"
+import Login from "../pages/Auth/Login"
+import RecoverPassword from "../pages/Auth/RecoverPassword"
+import ResetPassword from "../pages/Auth/ResetPassword"
+import Dashboard from "../pages/Dashboard/Dashboard"
+import Chatbot from "../pages/Chatbot/Chatbot"
+import ChatbotInvitado from "../pages/Chatbot/ChatbotInvitado"
+import Statistics from "../pages/Dashboard/Statistics"
+import Users from "../pages/Database/Users"
+import NotFound from "../pages/NotFound/NotFound"
+import ProtectedRoute from "../components/ProtectedRoute"
 
-// ── Páginas del Chatbot (van dentro de MainLayout) ────────────────────────────
-import Chatbot         from "../pages/Chatbot/Chatbot";
-import ChatbotInvitado from "../pages/Chatbot/ChatbotInvitado";
+import MainLayout from "../layouts/MainLayout"
+import Configuration from "../pages/Dashboard/Configuration"
+import Account from "../pages/Dashboard/Account"
 
-// ── Páginas del Dashboard (van dentro de DashboardLayout) ─────────────────────
-import Dashboard       from "../pages/Dashboard/Dashboard";
-import Configuration   from "../pages/Dashboard/Configuration";
-import Account         from "../pages/Dashboard/Account";
-import Statistics      from "../pages/Dashboard/Statistics";
-import Users           from "../pages/Database/Users";
+function AppRoutes(){
 
-function AppRoutes() {
-  return (
-    <BrowserRouter>
-      <Routes>
+return(
 
-        {/* ── Páginas standalone (sin sidebar) ──────────────────────────── */}
-        <Route path="/"                 element={<Home />} />
-        <Route path="/login"            element={<Login />} />
-        <Route path="/recover-password" element={<RecoverPassword />} />
-        <Route path="/reset-password"   element={<ResetPassword />} />
+<BrowserRouter>
 
-        {/* ── CHATBOT — usa MainLayout (sidebar historial de chats) ──────── */}
-        <Route path="/chatbot" element={<MainLayout />}>
-          <Route index                  element={<Chatbot />} />
-          <Route path="invitado"        element={<ChatbotInvitado />} />
-          {/*
-            Rutas futuras del chatbot van aquí adentro:
-            <Route path="history"       element={<ChatHistory />} />
-          */}
-        </Route>
+    <Routes>
 
-        {/* ── DASHBOARD — usa DashboardLayout (sidebar admin) ───────────── */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index                  element={<Dashboard />} />
-          <Route path="configuration"   element={<Configuration />} />
-          <Route path="account"         element={<Account />} />
-          <Route path="statistics"      element={<Statistics />} />
-          <Route path="users"           element={<Users />} />
-          {/*
-            Rutas futuras del dashboard van aquí adentro:
-            <Route path="errors"        element={<ErrorsPanel />} />
-            <Route path="notifications" element={<Notifications />} />
-          */}
-        </Route>
+        <Route path="/" element={<Home />} />
+
+        <Route path="/login" element={<Login />} />
+
+        <Route path="/RecoverPassword" element={<RecoverPassword />} />
+
+        <Route path="/ResetPassword" element={<ResetPassword />} />
+
+        <Route 
+            path="/dashboard" 
+            element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                    <Dashboard />
+                </ProtectedRoute>
+            } 
+        />
+
+        <Route 
+            path="/chatbot" 
+            element={
+                <ProtectedRoute allowedRoles={['aprendiz', 'admin']}>
+                    <Chatbot />
+                </ProtectedRoute>
+            } 
+        />
+
+        <Route path="/ChatbotInvitado" element={<ChatbotInvitado />} />
+
+        <Route 
+            path="/statistics" 
+            element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                    <Statistics />
+                </ProtectedRoute>
+            } 
+        />
+
+        <Route 
+            path="/users" 
+            element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                    <Users />
+                </ProtectedRoute>
+            } 
+        />
+
 
         {/* ── 404 ────────────────────────────────────────────────────────── */}
         <Route path="*" element={<NotFound />} />

@@ -11,6 +11,10 @@ export const loginUser = async (data) => {
         body: JSON.stringify(data)
     })
 
+    if (!response.ok) {
+        throw new Error("Credenciales inválidas o datos incompletos");
+    }
+
     const result = await response.json()
 
     // guardar token

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import "../../assets/Styles/global.css"
-import { sendGuestMessage } from "../../services/chatService"
+import { sendMessage } from "../../services/chatService"
 
 const ChatbotInvitado = () => {
     const [input, setInput] = useState("")
@@ -14,11 +14,12 @@ const ChatbotInvitado = () => {
 
         try {
 
-            const response = await sendGuestMessage(input)
+            const response = await sendMessage(input)
+            const respuestaBot = response.data ? response.data.respuesta : response.respuesta;
 
             setMessages(prev => [
                 ...prev,
-                { text: response.respuesta, user: "bot" }
+                { text: respuestaBot || "Sin respuesta", user: "bot" }
             ])
 
         } catch {
