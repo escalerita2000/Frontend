@@ -1,0 +1,133 @@
+/* src/components/DashboardSidebar/DashboardSidebar.css */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;500;600&display=swap');
+
+.dash-sb {
+  width: 230px;
+  flex-shrink: 0;
+  height: 100vh;
+  background: #1e3a1a;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Inter', sans-serif;
+  box-shadow: 4px 0 20px rgba(0,0,0,0.12);
+}
+
+/* ── Brand ── */
+.dash-sb__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 18px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.dash-sb__logo {
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.dash-sb__logo svg { width: 22px; height: 22px; }
+.dash-sb__brand-name {
+  display: block;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 17px; font-weight: 800;
+  color: white; line-height: 1;
+}
+.dash-sb__brand-sub {
+  display: block;
+  font-size: 10px; color: rgba(255,255,255,0.4);
+  margin-top: 2px; letter-spacing: 0.07em;
+}
+
+/* ── Nav ── */
+.dash-sb__nav {
+  flex: 1;
+  padding: 18px 10px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.dash-sb__nav::-webkit-scrollbar { display: none; }
+
+.dash-sb__section {
+  font-size: 10px; font-weight: 700;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 0.1em;
+  padding: 0 10px 10px;
+}
+
+.dash-sb__link {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: rgba(255,255,255,0.6);
+  text-decoration: none;
+  font-size: 13.5px; font-weight: 500;
+  transition: background 0.17s, color 0.17s;
+  margin-bottom: 2px;
+}
+.dash-sb__link:hover {
+  background: rgba(255,255,255,0.07);
+  color: white;
+}
+.dash-sb__link.active {
+  background: rgba(93,170,79,0.18);
+  color: #90d083;
+}
+.dash-sb__link.active .dash-sb__icon { color: #90d083; }
+
+.dash-sb__icon {
+  width: 17px; height: 17px;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.4);
+  flex-shrink: 0;
+  transition: color 0.17s;
+}
+.dash-sb__icon svg { width: 15px; height: 15px; }
+
+/* ── Back to chatbot ── */
+.dash-sb__back-wrap {
+  padding: 0 12px 12px;
+}
+.dash-sb__back-link {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  color: rgba(255,255,255,0.45);
+  text-decoration: none;
+  font-size: 12.5px; font-weight: 500;
+  transition: background 0.17s, color 0.17s;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.dash-sb__back-link:hover {
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.75);
+}
+.dash-sb__back-link svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* ── Footer ── */
+.dash-sb__footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.dash-sb__avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.18);
+  object-fit: cover; flex-shrink: 0;
+}
+.dash-sb__user-name {
+  font-size: 13px; font-weight: 600;
+  color: rgba(255,255,255,0.88); line-height: 1;
+}
+.dash-sb__user-role {
+  font-size: 11px; color: rgba(255,255,255,0.38);
+  margin-top: 2px;
+}
