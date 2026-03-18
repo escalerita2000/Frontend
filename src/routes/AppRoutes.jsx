@@ -1,8 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 
-import MainLayout from "../layouts/MainLayout"
-import Configuration from "../pages/Dashboard/Configuration"
-import Account from "../pages/Dashboard/Account"
+
 
 import Home from "../pages/Home/Home"
 import Login from "../pages/Auth/Login"
@@ -15,50 +13,43 @@ import Statistics from "../pages/Dashboard/Statistics"
 import Users from "../pages/Database/Users"
 import NotFound from "../pages/NotFound/NotFound"
 
+import MainLayout from "../layouts/MainLayout"
+import Configuration from "../pages/Dashboard/Configuration"
+import Account from "../pages/Dashboard/Account"
+
 function AppRoutes(){
 
 return(
 
 <BrowserRouter>
 
-<Routes>
+    <Routes>
 
-<Route path="/" element={<Home />} />
+        <Route path="/" element={<Home />} />
 
-<Route path="/login" element={<Login />} />
+        <Route path="/login" element={<Login />} />
 
-<Route path="/RecoverPassword" element={<RecoverPassword />} />
+        <Route path="/RecoverPassword" element={<RecoverPassword />} />
 
-<Route path="/ResetPassword" element={<ResetPassword />} />
+        <Route path="/ResetPassword" element={<ResetPassword />} />
 
-<Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
 
-{/* APPLICATION */}
-<Route index element={<Dashboard />} />
-<Route path="application" element={<Dashboard />} />
+        <Route path="/chatbot" element={<MainLayout />}>
+            <Route index element={<Chatbot />} />
+        </Route>
 
-{/* APPLICATION */}
-<Route index element={<Dashboard />} />
-<Route path="application" element={<Dashboard />} />
+        <Route path="/ChatbotInvitado" element={<ChatbotInvitado />} />
 
-{/* CONFIGURATION */}
-<Route path="configuration" element={<Configuration />} />
+        <Route path="/statistics" element={<Statistics />} />
 
-<Route path="/chatbot" element={<MainLayout />}>
-    <Route index element={<Chatbot />} />
-</Route>
-
-<Route path="/ChatbotInvitado" element={<ChatbotInvitado />} />
-
-<Route path="/statistics" element={<Statistics />} />
-
-<Route path="/users" element={<Users />} />
+        <Route path="/users" element={<Users />} />
 
 
-{/* Ruta 404 */}
-<Route path="*" element={<NotFound />} />
+        {/* Ruta 404 */}
+        <Route path="*" element={<NotFound />} />
 
-</Routes>
+    </Routes>
 
 </BrowserRouter>
 
