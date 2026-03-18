@@ -1,5 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 
+import MainLayout from "../layouts/MainLayout"
+import Configuration from "../pages/Dashboard/Configuration"
+import Account from "../pages/Dashboard/Account"
+
 import Home from "../pages/Home/Home"
 import Login from "../pages/Auth/Login"
 import RecoverPassword from "../pages/Auth/RecoverPassword"
@@ -29,7 +33,22 @@ return(
 
 <Route path="/dashboard" element={<Dashboard />} />
 
-<Route path="/chatbot" element={<Chatbot />} />
+<Route path="/chatbot" element={<MainLayout />}>
+
+        {/* APPLICATION */}
+        <Route index element={<Dashboard />} />
+        <Route path="application" element={<Dashboard />} />
+
+        {/* APPLICATION */}
+        <Route index element={<Dashboard />} />
+        <Route path="application" element={<Dashboard />} />
+
+         {/* CONFIGURATION */}
+        <Route path="configuration" element={<Configuration />} />
+
+
+    <Route index element={<Chatbot />} />
+</Route>
 
 <Route path="/ChatbotInvitado" element={<ChatbotInvitado />} />
 
