@@ -1,4 +1,15 @@
-import { useState } from "react";
+// src/components/Sidebar/Sidebar.jsx
+//
+// COMBINADO: tu Sidebar original + UserMenu integrado.
+//
+// CAMBIOS respecto al original:
+//  - Import de UserMenu agregado
+//  - El bloque "sidebar-bottom" con la imagen hardcodeada y "USUARIO"
+//    fue reemplazado por <UserMenu /> que toma los datos del AuthContext
+//  - Todo lo demas (toggle, new chat, archive, historial, chat-list) intacto
+
+import { useState }  from "react"
+import UserMenu      from "../UserMenu/UserMenu"
 
 export default function Sidebar({
   chats = [],
@@ -9,7 +20,7 @@ export default function Sidebar({
   isOpen,
   onToggle,
 }) {
-  const [hoveredId, setHoveredId] = useState(null);
+  const [hoveredId, setHoveredId] = useState(null)
 
   return (
     <>
@@ -82,10 +93,7 @@ export default function Sidebar({
                   {hoveredId === chat.id && (
                     <button
                       className="delete-chat-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteChat(chat.id);
-                      }}
+                      onClick={(e) => { e.stopPropagation(); onDeleteChat(chat.id) }}
                       title="Eliminar chat"
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -102,20 +110,23 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* User section at bottom */}
-        <div className="sidebar-bottom">
-          <div className="user-section">
-            <div className="user-avatar-wrap">
-              <img
-                src="https://i.pravatar.cc/40?img=47"
-                alt="Usuario"
-                className="user-avatar-img"
-              />
+        {/* ── Sección de usuario — reemplaza el bloque original ── */}
+        {/* ANTES:
+            <div className="sidebar-bottom">
+              <div className="user-section">
+                <div className="user-avatar-wrap">
+                  <img src="https://i.pravatar.cc/40?img=47" alt="Usuario" className="user-avatar-img"/>
+                </div>
+                <span className="user-name">USUARIO</span>
+              </div>
             </div>
-            <span className="user-name">USUARIO</span>
-          </div>
+        */}
+        <div className="sidebar-bottom">
+          <UserMenu />
         </div>
+
       </aside>
     </>
-  );
+  )
+
 }

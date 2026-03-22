@@ -485,7 +485,6 @@ LOGIN CARD
   font-size: .78rem;
   font-weight: 600;
   letter-spacing: .2em;
-  text-transform: uppercase;
   color: var(--gray-dark);
   outline: none;
   transition: border-color .25s, box-shadow .25s;
@@ -507,7 +506,6 @@ LOGIN CARD
   font-size: .7rem;
   font-weight: 600;
   letter-spacing: .16em;
-  text-transform: uppercase;
   color: var(--gray-mid);
   text-decoration: none;
   transition: color .2s;
@@ -527,7 +525,6 @@ LOGIN CARD
   font-size: .9rem;
   font-weight: 700;
   letter-spacing: .2em;
-  text-transform: uppercase;
   cursor: pointer;
   transition: background .25s, transform .2s, box-shadow .25s;
   box-shadow: 0 4px 20px rgba(61,156,58,.28);
@@ -553,58 +550,41 @@ ANIMATIONS
 }
 
 
-
 /* ═══════════════════════════════════════
-AVIS – Olvidaste tu Contraseña
-forgot.css
+   AVIS – RecoverPassword
+   recoverPassword.css  —  scoped to .forgot-root
 ═══════════════════════════════════════ */
 
 :root {
-  --green:       #3d9c3a;
-  --green-light: #52c44f;
-  --green-dark:  #2a6e28;
-  --gray-dark:   #2b2b2b;
-  --gray-mid:    #4a4a4a;
-  --gray-light:  #e8e8e8;
-  --white:       #ffffff;
-  --bg:          #fafafa;
+  --fp-green:      #3d9c3a;
+  --fp-green-dark: #2a6e28;
+  --fp-gray-dark:  #2b2b2b;
+  --fp-gray-mid:   #4a4a4a;
+  --fp-white:      #ffffff;
+  --fp-bg:         #fafafa;
+  --fp-red:        #d94f4f;
 }
 
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
 
-html, body {
-  height: 100%;
+/* ── Root (main tag) ── */
+.forgot-root {
+  width: 100vw;
+  height: 100vh;
   max-height: 100vh;
   overflow: hidden;
-}
-
-body {
   font-family: 'Outfit', sans-serif;
-  background: var(--bg);
-  color: var(--gray-dark);
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-/* ══════════════════════════════════════
-MAIN — canvas background
-══════════════════════════════════════ */
-main {
-  flex: 1 1 0;
-  min-height: 0;
+  background: var(--fp-bg);
+  color: var(--fp-gray-dark);
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
 }
 
-#forgot-canvas {
+/* ── Canvas ── */
+.forgot-root .forgot-canvas {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -614,13 +594,13 @@ main {
 }
 
 /* ══════════════════════════════════════
-FORGOT CARD
+   CARD
 ══════════════════════════════════════ */
-.forgot-card {
+.forgot-root .forgot-card {
   position: relative;
   z-index: 10;
   width: 100%;
-  max-width: 600px;
+  max-width: 580px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -629,20 +609,17 @@ FORGOT CARD
 }
 
 /* ── Logo ── */
-.forgot-logo {
+.forgot-root .forgot-logo {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 30px;
-  animation: fadeDown .7s ease both;
+  margin-bottom: 28px;
+  animation: fpFadeDown .7s ease both;
 }
 
-.forgot-logo svg {
-  width: 80px;
-  height: 80px;
-}
+.forgot-root .forgot-logo svg { width: 80px; height: 80px; }
 
-.forgot-logo-text {
+.forgot-root .forgot-logo-text {
   margin-top: 8px;
   display: flex;
   flex-direction: column;
@@ -650,85 +627,96 @@ FORGOT CARD
   line-height: 1;
 }
 
-.forgot-logo-text .brand {
+.forgot-root .forgot-logo-text .brand {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 2.8rem;
   letter-spacing: .06em;
-  color: var(--gray-dark);
+  color: var(--fp-gray-dark);
 }
 
-.forgot-logo-text .tagline {
+.forgot-root .forgot-logo-text .tagline {
   font-size: .65rem;
   font-weight: 700;
   letter-spacing: .28em;
   text-transform: uppercase;
-  color: var(--green);
+  color: var(--fp-green);
   margin-top: 2px;
 }
 
 /* ── Title ── */
-.forgot-title {
+.forgot-root .forgot-title {
   font-family: 'Bebas Neue', sans-serif;
   font-size: clamp(2.2rem, 6vw, 3.6rem);
   letter-spacing: .04em;
-  color: var(--gray-dark);
+  color: var(--fp-gray-dark);
   line-height: 1;
-  margin-bottom: 12px;
-  animation: fadeUp .75s .06s ease both;
+  margin-bottom: 10px;
+  animation: fpFadeUp .75s .06s ease both;
 }
 
 /* ── Subtitle ── */
-.forgot-sub {
+.forgot-root .forgot-sub {
   font-size: clamp(.85rem, 1.6vw, 1rem);
   font-weight: 400;
-  color: var(--gray-mid);
-  margin-bottom: 36px;
-  animation: fadeUp .75s .12s ease both;
+  color: var(--fp-gray-mid);
+  margin-bottom: 32px;
+  animation: fpFadeUp .75s .12s ease both;
 }
 
 /* ── Form ── */
-.forgot-form {
+.forgot-root .forgot-form {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  animation: fadeUp .75s .18s ease both;
+  gap: 14px;
+  animation: fpFadeUp .75s .18s ease both;
 }
 
-.input-group {
-  width: 100%;
-}
+.forgot-root .input-group { width: 100%; }
 
-.input-group input {
+.forgot-root .input-group input {
   width: 100%;
   padding: 18px 20px;
-  background: var(--white);
+  background: var(--fp-white);
   border: 1.5px solid #ccc;
   border-radius: 6px;
   font-family: 'Outfit', sans-serif;
   font-size: .88rem;
   font-weight: 400;
-  color: var(--gray-dark);
+  color: var(--fp-gray-dark);
   outline: none;
   transition: border-color .25s, box-shadow .25s;
 }
 
-.input-group input::placeholder {
-  color: #aaa;
-}
+.forgot-root .input-group input::placeholder { color: #aaa; }
 
-.input-group input:focus {
-  border-color: var(--green);
+.forgot-root .input-group input:focus {
+  border-color: var(--fp-green);
   box-shadow: 0 0 0 3px rgba(61,156,58,.12);
 }
 
-/* ── Submit ── */
-.btn-send {
+.forgot-root .input-group input.input-error {
+  border-color: var(--fp-red);
+  box-shadow: 0 0 0 3px rgba(217,79,79,.1);
+}
+
+/* Inline error */
+.forgot-root .forgot-error {
+  margin-top: 6px;
+  font-size: .76rem;
+  font-weight: 600;
+  color: var(--fp-red);
+  text-align: left;
+  letter-spacing: .04em;
+}
+
+/* ── Send button ── */
+.forgot-root .btn-send {
   width: 100%;
   padding: 18px;
-  background: var(--green-dark);
-  color: var(--white);
+  background: var(--fp-green-dark);
+  color: var(--fp-white);
   border: none;
   border-radius: 8px;
   font-family: 'Outfit', sans-serif;
@@ -737,49 +725,360 @@ FORGOT CARD
   letter-spacing: .22em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background .25s, transform .2s, box-shadow .25s;
+  transition: background .25s, transform .2s, box-shadow .25s, opacity .2s;
   box-shadow: 0 4px 20px rgba(61,156,58,.28);
-  animation: fadeUp .75s .24s ease both;
 }
 
-.btn-send:hover {
-  background: var(--green);
+.forgot-root .btn-send:hover:not(:disabled) {
+  background: var(--fp-green);
   transform: translateY(-2px);
   box-shadow: 0 8px 28px rgba(61,156,58,.4);
 }
 
-.btn-send:active {
-  transform: translateY(0);
+.forgot-root .btn-send:active:not(:disabled) { transform: translateY(0); }
+
+.forgot-root .btn-send:disabled {
+  opacity: .7;
+  cursor: not-allowed;
 }
 
+.forgot-root .btn-send.loading { letter-spacing: .1em; }
+
 /* ── Back link ── */
-.back-link {
-  margin-top: 4px;
+.forgot-root .back-link {
+  font-family: 'Outfit', sans-serif;
   font-size: .72rem;
   font-weight: 600;
   letter-spacing: .14em;
   text-transform: uppercase;
-  color: var(--gray-mid);
+  color: var(--fp-gray-mid);
   text-decoration: none;
   transition: color .2s;
-  animation: fadeUp .75s .3s ease both;
+  margin-top: 4px;
 }
 
-.back-link:hover { color: var(--green); }
+.forgot-root .back-link:hover { color: var(--fp-green); }
 
 /* ══════════════════════════════════════
-ANIMATIONS
+   ANIMATIONS
 ══════════════════════════════════════ */
-@keyframes fadeDown {
+@keyframes fpFadeDown {
   from { opacity: 0; transform: translateY(-20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes fadeUp {
+@keyframes fpFadeUp {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
+
+/* ═══════════════════════════════════════
+   AVIS – RecoveryPassword (código OTP)
+   recoveryPassword.css  —  scoped to .rp-root
+═══════════════════════════════════════ */
+
+:root {
+  --rp-green:      #3d9c3a;
+  --rp-green-dark: #2a6e28;
+  --rp-green-soft: #8ab88a;
+  --rp-gray-dark:  #2b2b2b;
+  --rp-gray-mid:   #4a4a4a;
+  --rp-white:      #ffffff;
+  --rp-bg:         #fafafa;
+  --rp-box-bg:     #2b2b2b;
+  --rp-red:        #d94f4f;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+
+/* ── Root wrapper ── */
+.rp-root {
+  width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  font-family: 'Outfit', sans-serif;
+  background: var(--rp-bg);
+  color: var(--rp-gray-dark);
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+
+/* ── Canvas ── */
+.rp-root .rp-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: .1;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ══════════════════════════════════════
+   CARD
+══════════════════════════════════════ */
+.rp-root .rp-card {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 24px;
+  width: 100%;
+  max-width: 640px;
+}
+
+/* ── Logo ── */
+.rp-root .rp-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 22px;
+  animation: rpFadeDown .7s ease both;
+}
+
+.rp-root .rp-logo svg { width: 76px; height: 76px; }
+
+.rp-root .rp-logo-text {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.rp-root .rp-logo-text .brand {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.8rem;
+  letter-spacing: .06em;
+  color: var(--rp-gray-dark);
+}
+
+.rp-root .rp-logo-text .tagline {
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  color: var(--rp-green);
+  margin-top: 2px;
+}
+
+/* ── Title ── */
+.rp-root .rp-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.6rem, 6vw, 4rem);
+  letter-spacing: .04em;
+  color: var(--rp-gray-dark);
+  margin-bottom: 10px;
+  animation: rpFadeUp .75s .06s ease both;
+}
+
+/* ── Subtitle ── */
+.rp-root .rp-sub {
+  font-size: clamp(.82rem, 1.4vw, .96rem);
+  color: var(--rp-gray-mid);
+  line-height: 1.55;
+  margin-bottom: 6px;
+  animation: rpFadeUp .75s .12s ease both;
+}
+
+.rp-root .rp-email {
+  color: var(--rp-green);
+  font-size: .85em;
+  font-weight: 600;
+}
+
+/* ── Error message ── */
+.rp-root .rp-error {
+  font-size: .95rem;
+  font-weight: 500;
+  color: var(--rp-red);
+  min-height: 1.5em;
+  margin-bottom: 6px;
+  animation: rpFadeUp .3s ease both;
+}
+
+.rp-root .rp-error.hidden { opacity: 0; pointer-events: none; }
+
+/* ══════════════════════════════════════
+   CODE BOXES
+══════════════════════════════════════ */
+.rp-root .rp-code-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  animation: rpFadeUp .75s .18s ease both;
+}
+
+.rp-root .rp-code-row.shake { animation: rpShake .4s ease both; }
+
+.rp-root .rp-gap { width: 22px; flex-shrink: 0; }
+
+.rp-root .rp-code-box {
+  width: 54px;
+  height: 62px;
+  background: var(--rp-box-bg);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem;
+  color: var(--rp-white);
+  cursor: text;
+  transition: border-color .2s, background .2s;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+
+.rp-root .rp-code-box.focused   { border-color: var(--rp-green); background: #3a3a3a; }
+.rp-root .rp-code-box.has-error { border-color: var(--rp-red);   background: #3a2020; }
+
+/* Input invisible sobre la caja */
+.rp-root .rp-code-box input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  font-size: 1.8rem;
+  text-align: center;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: transparent;
+  caret-color: transparent;
+  cursor: text;
+}
+
+.rp-root .rp-code-display {
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ══════════════════════════════════════
+   RESEND ROW
+══════════════════════════════════════ */
+.rp-root .rp-resend-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  animation: rpFadeUp .75s .24s ease both;
+}
+
+.rp-root .rp-resend-label {
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--rp-gray-mid);
+}
+
+.rp-root .rp-resend-timer {
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--rp-gray-mid);
+  letter-spacing: .04em;
+  min-width: 32px;
+}
+
+.rp-root .rp-btn-resend {
+  padding: 8px 18px;
+  background: var(--rp-green-soft);
+  color: var(--rp-white);
+  border: none;
+  border-radius: 20px;
+  font-family: 'Outfit', sans-serif;
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .25s, transform .2s, opacity .2s;
+}
+
+.rp-root .rp-btn-resend:hover:not(:disabled) {
+  background: var(--rp-green);
+  transform: translateY(-1px);
+}
+
+.rp-root .rp-btn-resend:disabled { opacity: .5; cursor: not-allowed; }
+.rp-root .rp-btn-resend.active   { background: var(--rp-green); }
+
+/* ══════════════════════════════════════
+   SUBMIT BUTTON
+══════════════════════════════════════ */
+.rp-root .rp-btn-submit {
+  width: 100%;
+  max-width: 500px;
+  padding: 20px;
+  background: var(--rp-green-dark);
+  color: var(--rp-white);
+  border: none;
+  border-radius: 12px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .25s, transform .2s, box-shadow .25s;
+  box-shadow: 0 4px 20px rgba(61,156,58,.3);
+  animation: rpFadeUp .75s .3s ease both;
+  margin-bottom: 14px;
+}
+
+.rp-root .rp-btn-submit:hover {
+  background: var(--rp-green);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(61,156,58,.4);
+}
+
+.rp-root .rp-btn-submit:active { transform: translateY(0); }
+
+/* ── Back link ── */
+.rp-root .rp-back-link {
+  font-family: 'Outfit', sans-serif;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--rp-gray-mid);
+  text-decoration: none;
+  transition: color .2s;
+}
+
+.rp-root .rp-back-link:hover { color: var(--rp-green); }
+
+/* ══════════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════════ */
+@keyframes rpFadeDown {
+  from { opacity: 0; transform: translateY(-18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rpFadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rpShake {
+  0%,100% { transform: translateX(0); }
+  20%      { transform: translateX(-7px); }
+  40%      { transform: translateX(7px); }
+  60%      { transform: translateX(-4px); }
+  80%      { transform: translateX(4px); }
+}
 
 
 

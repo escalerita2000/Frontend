@@ -1,84 +1,86 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+// src/routes/AppRoutes.jsx
+//
+// COMBINADO: rutas originales de AVIS + sistema PrivateRoute/RoleRoute del auth.
+//
+// CAMBIOS respecto al original:
+//  - Se elimina BrowserRouter de aquí (ya está en main.jsx con AuthProvider)
+//  - Se reemplaza el ProtectedRoute inline por PrivateRoute + RoleRoute anidados
+//  - Se añaden las rutas /database que venían del sistema de auth
+//  - Se mantienen todas tus rutas: /, /login, /RecoverPassword, /ResetPassword,
+//    /dashboard, /chatbot, /ChatbotInvitado, /statistics, /users, /404
 
+import { Routes, Route, Navigate } from "react-router-dom"
 
+// Guards
+import { PrivateRoute } from "./PrivateRoute"
+import { RoleRoute }    from "./RoleRoute"
 
-import Home from "../pages/Home/Home"
-import Login from "../pages/Auth/Login"
-import RecoverPassword from "../pages/Auth/RecoverPassword"
-import ResetPassword from "../pages/Auth/ResetPassword"
-import Dashboard from "../pages/Dashboard/Dashboard"
+// Layouts
+import DashboardLayout from "../layouts/DashboardLayout"
+import MainLayout      from "../layouts/MainLayout"
+
+// Páginas públicas
+import Home              from "../pages/Home/Home"
+import Login             from "../pages/Auth/Login"
+import RecoverPassword   from "../pages/Auth/RecoverPassword"
+import RecoveryPassword  from "../pages/Auth/RecoveryPassword"
+import ResetPassword     from "../pages/Auth/ResetPassword"
+import ChatbotInvitado   from "../pages/Chatbot/ChatbotInvitado"
+
+// Páginas privadas — todos los roles autenticados
 import Chatbot from "../pages/Chatbot/Chatbot"
-import ChatbotInvitado from "../pages/Chatbot/ChatbotInvitado"
-import Statistics from "../pages/Dashboard/Statistics"
-import Users from "../pages/Database/Users"
-import NotFound from "../pages/NotFound/NotFound"
-import ProtectedRoute from "../components/ProtectedRoute"
 
-import MainLayout from "../layouts/MainLayout"
+// Páginas privadas — solo admin
+import Dashboard     from "../pages/Dashboard/Dashboard"
+import Statistics    from "../pages/Dashboard/Statistics"
 import Configuration from "../pages/Dashboard/Configuration"
-import Account from "../pages/Dashboard/Account"
+import Account       from "../pages/Dashboard/Account"
+import DataManager   from "../pages/Database/DataManager"
 
-function AppRoutes(){
+// Utilidades
+import NotFound from "../pages/NotFound/NotFound"
 
-return(
+function AppRoutes() {
 
-<BrowserRouter>
-
+return (
     <Routes>
 
-        <Route path="/" element={<Home />} />
-
-        <Route path="/login" element={<Login />} />
-
+      {/* ── Rutas públicas ─────────────────────────────────────────────── */}
+        <Route path="/"                element={<Home />} />
+        <Route path="/login"           element={<Login />} />
         <Route path="/RecoverPassword" element={<RecoverPassword />} />
-
-        <Route path="/ResetPassword" element={<ResetPassword />} />
-
-        <Route 
-            path="/dashboard" 
-            element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                    <Dashboard />
-                </ProtectedRoute>
-            } 
-        />
-
-        <Route 
-            path="/chatbot" 
-            element={
-                <ProtectedRoute allowedRoles={['aprendiz', 'admin']}>
-                    <Chatbot />
-                </ProtectedRoute>
-            } 
-        />
-
+        <Route path="/RecoveryPassword/:token" element={<RecoveryPassword />} />
+        <Route path="/ResetPassword"   element={<ResetPassword />} />
         <Route path="/ChatbotInvitado" element={<ChatbotInvitado />} />
 
-        <Route 
-            path="/statistics" 
-            element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                    <Statistics />
-                </ProtectedRoute>
-            } 
-        />
+      {/* ── Rutas privadas: aprendiz + admin ───────────────────────────── */}
+        <Route element={<PrivateRoute />}>
+        <Route element={<RoleRoute allowedRoles={['aprendiz', 'admin']} />}>
+        <Route path="/chatbot" element={<Chatbot />} />
+        </Route>
+    </Route>
 
-        <Route 
-            path="/users" 
-            element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                    <Users />
-                </ProtectedRoute>
-            } 
-        />
+      {/* ── Rutas privadas: solo admin (con DashboardLayout) ───────────── */}
+        <Route element={<PrivateRoute />}>
+        <Route element={<RoleRoute allowedRoles={['admin']} />}>
+            <Route element={<DashboardLayout />}>
+            <Route path="/dashboard"     element={<Dashboard />} />
+            <Route path="/statistics"    element={<Statistics />} />
+            <Route path="/configuration" element={<Configuration />} />
+            <Route path="/account"       element={<Account />} />
+            <Route path="/database"      element={<DataManager />} />
+            {/* /users redirige a /database para unificar la gestión */}
+            <Route path="/users"         element={<Navigate to="/database" replace />} />
+            </Route>
+        </Route>
+    </Route>
 
+      {/* ── 404 ────────────────────────────────────────────────────────── */}
+        <Route path="/404" element={<NotFound />} />
+        <Route path="*"    element={<Navigate to="/404" replace />} />
 
-        {/* ── 404 ────────────────────────────────────────────────────────── */}
-        <Route path="*" element={<NotFound />} />
-
-      </Routes>
-    </BrowserRouter>
-  );
+    </Routes>
+    )
 }
 
-export default AppRoutes;
+export default AppRoutes
