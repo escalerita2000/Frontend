@@ -1,5 +1,4 @@
-// src/pages/Database/DataManager.jsx
-// Orquestador del modulo Database. Solo accesible para admin.
+
 import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import Users from '../Database/Users'  

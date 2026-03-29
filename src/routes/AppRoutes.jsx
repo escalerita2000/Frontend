@@ -1,13 +1,3 @@
-// src/routes/AppRoutes.jsx
-//
-// COMBINADO: rutas originales de AVIS + sistema PrivateRoute/RoleRoute del auth.
-//
-// CAMBIOS respecto al original:
-//  - Se elimina BrowserRouter de aquí (ya está en main.jsx con AuthProvider)
-//  - Se reemplaza el ProtectedRoute inline por PrivateRoute + RoleRoute anidados
-//  - Se añaden las rutas /database que venían del sistema de auth
-//  - Se mantienen todas tus rutas: /, /login, /RecoverPassword, /ResetPassword,
-//    /dashboard, /chatbot, /ChatbotInvitado, /statistics, /users, /404
 
 import { Routes, Route, Navigate } from "react-router-dom"
 
@@ -21,6 +11,7 @@ import MainLayout      from "../layouts/MainLayout"
 
 // Páginas públicas
 import Home              from "../pages/Home/Home"
+import Register          from "../pages/Auth/Register"
 import Login             from "../pages/Auth/Login"
 import RecoverPassword   from "../pages/Auth/RecoverPassword"
 import RecoveryPassword  from "../pages/Auth/RecoveryPassword"
@@ -47,6 +38,7 @@ return (
 
       {/* ── Rutas públicas ─────────────────────────────────────────────── */}
         <Route path="/"                element={<Home />} />
+        <Route path="/Register"        element={<Register />} />
         <Route path="/login"           element={<Login />} />
         <Route path="/RecoverPassword" element={<RecoverPassword />} />
         <Route path="/RecoveryPassword/:token" element={<RecoveryPassword />} />

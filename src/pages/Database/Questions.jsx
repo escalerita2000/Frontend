@@ -1,4 +1,4 @@
-// src/pages/Database/Questions/Questions.jsx
+
 
 const MOCK_DATA = [
   { id: '1', text: 'Que es React?', category: 'Frontend', active: true },

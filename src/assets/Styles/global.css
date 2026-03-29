@@ -2290,7 +2290,7 @@ html, body, #root {
 }
 
 /* ===========================
-   CHAT VIEW
+          CHAT VIEW
    =========================== */
 
 .chat-view {
@@ -2298,6 +2298,7 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
   overflow: hidden;
 }
 
@@ -2317,7 +2318,6 @@ html, body, #root {
   letter-spacing: 0.01em;
   display: block;
   max-width: 600px;
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

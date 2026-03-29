@@ -1,37 +1,58 @@
 // src/layouts/DashboardLayout.jsx
-//
-// COMBINADO: tu layout AVIS original + Outlet del sistema de rutas anidadas.
-//
-// Tu layout ya usaba <Outlet /> correctamente — no hubo conflicto.
-// Lo único que se mantiene exactamente igual es tu estructura:
-//   DashboardNavbar (top) + main (Outlet) + DashboardRightMenu (right panel)
-//
-// NOTA: el logout ya no necesita estar aquí porque tu DashboardNavbar
-// o DashboardRightMenu lo manejan. Si quieres agregar logout en el menú
-// lateral puedes usar: const { logout } = useAuth()
-
-import { Outlet }             from "react-router-dom"
-import DashboardNavbar        from "../components/DashboardNavbar/DashboardNavbar"
-import DashboardRightMenu     from "../components/DashboardRightMenu/DashboardRightMenu"
-import "./DashboardLayout.css"
+import { Outlet } from "react-router-dom";
+import DashboardNavbar    from "../components/DashboardNavbar/DashboardNavbar";
+import DashboardRightMenu from "../components/DashboardRightMenu/DashboardRightMenu";
 
 function DashboardLayout() {
   return (
-    <div className="db-layout">
-      {/* Top navbar: usuario | logo AVIS | paginación */}
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      width: "100vw",
+      height: "100vh",
+      overflow: "hidden",
+      backgroundColor: "#1c5230",  // ← verde vivo de la referencia
+      boxSizing: "border-box",
+    }}>
+      {/* Navbar negro superior */}
       <DashboardNavbar />
 
-      <div className="db-layout__body">
-        {/* Contenido principal — Dashboard, Statistics, Configuration, Account, DataManager */}
-        <main className="db-layout__main">
+      {/* Cuerpo */}
+      <div style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "row",
+        overflow: "hidden",
+        minHeight: 0,
+        backgroundColor: "#1c5230",
+      }}>
+        {/* Contenido principal */}
+        <main style={{
+          flex: 1,
+          overflow: "hidden",
+          minWidth: 0,
+          backgroundColor: "#1c5230",
+          display: "flex",
+          flexDirection: "column",
+        }}>
           <Outlet />
         </main>
 
-        {/* Menú lateral derecho: Application | Configuration | My Account */}
-        <DashboardRightMenu />
+        {/* Panel derecho — negro puro como en la referencia */}
+        <div style={{
+          width: "200px",
+          flexShrink: 0,
+          alignSelf: "stretch",
+          backgroundColor: "#000000",   // ← negro puro
+          borderLeft: "1px solid rgba(255,255,255,0.06)",
+          display: "flex",
+          flexDirection: "column",
+        }}>
+          <DashboardRightMenu />
+        </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default DashboardLayout
+export default DashboardLayout;

@@ -1,15 +1,4 @@
-// src/pages/Chatbot/ChatbotInvitado.jsx
-//
-// COMBINADO: tu ChatbotInvitado original + sistema de tokens.
-//
-// CAMBIOS respecto al original:
-//  - Se agrega useGuestTokens para limitar mensajes (5 por defecto)
-//  - El input se bloquea cuando tokens === 0
-//  - Aparece banner de "iniciar sesion" cuando se agotan los tokens
-//  - Los mensajes ahora muestran burbujas con avatar (igual al Chatbot principal)
-//  - Se mantiene tu estructura visual: canvas, logo AVIS, titulo, subtitulo,
-//    search-box, botones rapidos — todo intacto
-//  - Se mantiene la llamada a sendMessage de chatService (backend real)
+
 
 import { useState, useRef, useEffect } from "react"
 import { Link }                         from "react-router-dom"
