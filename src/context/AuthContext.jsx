@@ -4,9 +4,9 @@
 
 import { createContext, useState, useEffect } from 'react'
 import { mockLogin } from '../services/authMock'
-import { loginUser } from '../services/authService'
+import { loginUser, registerUser } from '../services/authService'
 
-const USE_MOCK_LOGIN = true
+const USE_MOCK_LOGIN = false
 
 export const AuthContext = createContext(null)
 
@@ -36,6 +36,14 @@ export const AuthProvider = ({ children }) => {
     return userData
   }
 
+  const register = async (name, email, password) => {
+    const result = await registerUser({ name, email, password })
+    const userData = result.user
+    setUser(userData)
+    localStorage.setItem('authUser', JSON.stringify(userData))
+    return userData
+  }
+
   // Orden critico:
   // 1. setUser(null)       -> PrivateRoute ya no deja pasar (sincrono)
   // 2. limpiar storage     -> no queda sesion persistida
@@ -56,7 +64,7 @@ export const AuthProvider = ({ children }) => {
   if (loading) return null
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAdmin, isAprendiz, isUser, hasRole, hasAnyRole }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isAdmin, isAprendiz, isUser, hasRole, hasAnyRole }}>
       {children}
     </AuthContext.Provider>
   )

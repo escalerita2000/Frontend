@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useContext } from 'react'
 import { Link, useNavigate } from "react-router-dom"
-
+import { AuthContext } from '../../context/AuthContext'
 
 const AvisLogo = ({ size = 80 }) => (
   <svg width={size} height={size} viewBox="0 0 120 120" fill="none">
@@ -80,6 +80,7 @@ const Register = () => {
   const [errors,  setErrors]  = useState({})
   const [loading, setLoading] = useState(false)
 
+  const { register } = useContext(AuthContext)
   const canvasRef = useRef(null)
   const navigate  = useNavigate()
 
@@ -133,20 +134,14 @@ const Register = () => {
     setLoading(true)
     try {
       /*
-        ── CONECTA TU API AQUÍ ──────────────────────
-        await authService.register({
-          nombre:   form.nombre,
-          usuario:  form.usuario,
-          email:    form.email,
-          password: form.password,
-        })
-        ──────────────────────────────────────────── */
-      await new Promise(r => setTimeout(r, 900))  // simulación
+        ── CONECTA TU API AQUÍ ────────────────────── */
+      await register(form.nombre, form.email, form.password)
+      
+      // Redirigir al chatbot ya que el rol por defecto en el backend es 'aprendiz'
+      navigate("/chatbot")
 
-      navigate("/Login")  // ← ajusta la ruta de login si es diferente
-
-    } catch {
-      setErrors({ general: "No se pudo completar el registro. Intenta de nuevo." })
+    } catch (err) {
+      setErrors({ general: err.message || "No se pudo completar el registro. Intenta de nuevo." })
     } finally {
       setLoading(false)
     }
