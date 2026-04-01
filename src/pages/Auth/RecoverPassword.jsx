@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from "react-router-dom"
 import "../../assets/Styles/global.css"
+import { forgotPassword } from "../../services/apiExtras"
 
 const AvisLogo = ({ size = 80 }) => (
   <svg width={size} height={size} viewBox="0 0 120 120" fill="none">
@@ -62,8 +63,7 @@ const RecoverPassword = () => {
 
     setError(""); setLoading(true)
     try {
-      // await authService.sendRecoveryCode(email)  ← tu API aquí
-      await new Promise(r => setTimeout(r, 800))
+      await forgotPassword(email)
 
       // Navega a /RecoveryPassword sin token, solo con email en state
       navigate("/RecoveryPassword", { state: { email } })

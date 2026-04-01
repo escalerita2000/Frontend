@@ -41,6 +41,7 @@ return (
         <Route path="/Register"        element={<Register />} />
         <Route path="/login"           element={<Login />} />
         <Route path="/RecoverPassword" element={<RecoverPassword />} />
+        <Route path="/RecoveryPassword" element={<RecoveryPassword />} />
         <Route path="/RecoveryPassword/:token" element={<RecoveryPassword />} />
         <Route path="/ResetPassword"   element={<ResetPassword />} />
         <Route path="/ChatbotInvitado" element={<ChatbotInvitado />} />
