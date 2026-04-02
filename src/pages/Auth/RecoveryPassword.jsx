@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import "../../assets/Styles/global.css"
+import { verifyRecoveryCode } from "../../services/apiExtras"
 
 const VALID_CODE  = "123456"  // reemplazar con validación API
 const TIMER_START = 177       // 2:57 segundos
@@ -129,11 +130,10 @@ const RecoveryPassword = () => {
     if(code.length<6){ inputRefs.current[digits.findIndex(d=>!d)]?.focus(); return }
 
     try {
-      // await authService.verifyRecoveryCode({ email, code })  ← tu API
-      if(code !== VALID_CODE) throw new Error("incorrect")
+      await verifyRecoveryCode({ email, code })
 
       // ✅ Código correcto → ir a cambiar contraseña
-      navigate("/ResetPassword", { state: { email } })
+      navigate("/ResetPassword", { state: { email, code } })
 
     } catch {
       // ❌ Incorrecto
