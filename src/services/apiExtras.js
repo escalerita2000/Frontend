@@ -106,3 +106,82 @@ export const getKnowledgeBase = async () => {
 
     return await response.json();
 };
+
+// ==========================================
+// DASHBOARD
+// ==========================================
+
+export const getDashboardStats = async () => {
+    const response = await fetch(`${API_URL}/dashboard`, {
+        method: "GET",
+        headers: getHeaders(false) // Enviamos headers con token
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || "Error obteniendo estadísticas del dashboard");
+    }
+
+    return await response.json();
+};
+
+// ==========================================
+// USERS
+// ==========================================
+
+export const getUsersDetails = async (page = 1, perPage = 10) => {
+    const response = await fetch(`${API_URL}/users?page=${page}&per_page=${perPage}`, {
+        method: "GET",
+        headers: getHeaders(false)
+    });
+
+    if (!response.ok) {
+        throw new Error("Error obteniendo usuarios");
+    }
+
+    return await response.json();
+};
+
+export const createUser = async (data) => {
+    const response = await fetch(`${API_URL}/users`, {
+        method: "POST",
+        headers: getHeaders(true),
+        body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || "Error al crear usuario");
+    }
+
+    return await response.json();
+};
+
+export const updateUser = async (id, data) => {
+    const response = await fetch(`${API_URL}/users/${id}`, {
+        method: "PUT",
+        headers: getHeaders(true),
+        body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || "Error al actualizar usuario");
+    }
+
+    return await response.json();
+};
+
+export const deleteUser = async (id) => {
+    const response = await fetch(`${API_URL}/users/${id}`, {
+        method: "DELETE",
+        headers: getHeaders(false)
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || "Error al eliminar usuario");
+    }
+
+    return await response.json();
+};
