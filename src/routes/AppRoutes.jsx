@@ -20,6 +20,7 @@ import ChatbotInvitado   from "../pages/Chatbot/ChatbotInvitado"
 
 // Páginas privadas — todos los roles autenticados
 import Chatbot from "../pages/Chatbot/Chatbot"
+import ChatHistory from "../pages/Chatbot/ChatHistory"
 
 // Páginas privadas — solo admin
 import Dashboard     from "../pages/Dashboard/Dashboard"
@@ -49,6 +50,7 @@ return (
         <Route element={<PrivateRoute />}>
         <Route element={<RoleRoute allowedRoles={['aprendiz', 'admin']} />}>
         <Route path="/chatbot" element={<Chatbot />} />
+        <Route path="/chathistory" element={<ChatHistory />} />
         </Route>
     </Route>
 

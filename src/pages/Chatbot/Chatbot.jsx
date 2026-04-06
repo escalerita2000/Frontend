@@ -11,6 +11,7 @@
 //  - Sin cambios en logica ni en estructura de datos
 
 import { useState, useEffect, useRef, useCallback } from "react"
+import { useNavigate } from "react-router-dom"                          // ← AGREGAR
 import Sidebar from "../../components/Sidebar/Sidebar"
 import { sendMessage as apiSendMessage, getChatHistory } from "../../services/chatService"
 
@@ -42,6 +43,11 @@ export default function Chatbot() {
   const messagesEndRef = useRef(null)
   const inputRef       = useRef(null)
   const canvasRef      = useRef(null)
+  const navigate = useNavigate()                                        // ← AGREGAR
+ 
+  const handleViewHistory = useCallback(() => {                         // ← AGREGAR
+    navigate("/chatHistory")                                            // ← ajusta la ruta según tu AppRoutes
+  }, [navigate])
 
   // ── Cargar historial del backend ──────────────────────────────────────────
   useEffect(() => {
@@ -237,7 +243,7 @@ export default function Chatbot() {
     <div className="app-root">
       <canvas ref={canvasRef} className="bg-canvas" />
 
-      <Sidebar
+        <Sidebar
         chats={chats}
         activeChatId={activeChatId}
         onNewChat={handleNewChat}
@@ -245,6 +251,7 @@ export default function Chatbot() {
         onDeleteChat={handleDeleteChat}
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen((o) => !o)}
+        onViewHistory={handleViewHistory}                               // ← AGREGAR
       />
 
       <main className={`chat-main ${sidebarOpen ? "sidebar-open" : ""}`}>

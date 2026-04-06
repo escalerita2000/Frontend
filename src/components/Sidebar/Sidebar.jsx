@@ -11,14 +11,14 @@
 import { useState }  from "react"
 import UserMenu      from "../UserMenu/UserMenu"
 
-export default function Sidebar({
-  chats = [],
-  activeChatId,
-  onNewChat,
-  onSelectChat,
-  onDeleteChat,
-  isOpen,
-  onToggle,
+export default function Sidebar({ chats, 
+  activeChatId, 
+  onNewChat, 
+  onSelectChat, 
+  onDeleteChat, 
+  isOpen, 
+  onToggle, 
+  onViewHistory 
 }) {
   const [hoveredId, setHoveredId] = useState(null)
 
@@ -66,15 +66,36 @@ export default function Sidebar({
 
           {/* History section */}
           <div className="history-section">
-            <div className="history-label">
+            <div className="history-label" onClick={() => setHistOpen(o => !o)}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/>
               </svg>
               <span>Historial</span>
-              <svg className="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
-            </div>
+              
+                          {/* Botón "ver todo" — navega a ChatHistory */}
+                {onViewHistory && (
+                  <button
+                    onClick={onViewHistory}
+                    title="Ver historial completo"
+                    style={{
+                      all: "unset", cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      width: 28, height: 28, borderRadius: 6,
+                      color: "rgba(255,255,255,.6)",
+                      transition: "color .2s, background .2s",
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.color="#fff"; e.currentTarget.style.background="rgba(255,255,255,.12)" }}
+                    onMouseLeave={e => { e.currentTarget.style.color="rgba(255,255,255,.6)"; e.currentTarget.style.background="transparent" }}>
+                    {/* Ícono flecha hacia afuera / "ver más" */}
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                      <polyline points="15 3 21 3 21 9"/>
+                      <line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
+
 
             <div className="chat-list">
               {chats.length === 0 && (
