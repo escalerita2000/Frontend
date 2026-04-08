@@ -57,6 +57,9 @@ return (
 
       {/* ── Rutas privadas: solo admin (con DashboardLayout) ───────────── */}
         <Route element={<PrivateRoute />}>
+          <Route element={<RoleRoute allowedRoles={['admin']} />}>
+          <Route path="/questions" element={<QuestionsPanel />} />
+          </Route>
         <Route element={<RoleRoute allowedRoles={['admin']} />}>
             <Route element={<DashboardLayout />}>
             <Route path="/dashboard"     element={<Dashboard />} />
@@ -66,7 +69,7 @@ return (
             <Route path="/database"      element={<DataManager />} />
             {/* /users redirige a /database para unificar la gestión */}
             <Route path="/users"         element={<Navigate to="/database" replace />} />
-            <Route path="/questions" element={<QuestionsPanel />} />
+            
             </Route>
         </Route>
     </Route>
