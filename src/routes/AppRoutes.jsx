@@ -46,7 +46,6 @@ return (
         <Route path="/RecoveryPassword"element={<RecoveryPassword />} />
         <Route path="/ResetPassword"   element={<ResetPassword />} />
         <Route path="/ChatbotInvitado" element={<ChatbotInvitado />} />
-        <Route path="/questions" element={<QuestionsPanel />} />
 
       {/* ── Rutas privadas: aprendiz + admin ───────────────────────────── */}
         <Route element={<PrivateRoute />}>
@@ -67,7 +66,7 @@ return (
             <Route path="/database"      element={<DataManager />} />
             {/* /users redirige a /database para unificar la gestión */}
             <Route path="/users"         element={<Navigate to="/database" replace />} />
-            
+            <Route path="/questions" element={<QuestionsPanel />} />
             </Route>
         </Route>
     </Route>

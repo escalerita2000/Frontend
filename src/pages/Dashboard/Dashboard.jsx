@@ -515,6 +515,10 @@ export default function AdminPanel() {
     navigate("/Login")
   }
 
+  const handleGoToQuestions = () => {
+  navigate("/questions")
+}
+
   const showToast = (type, msg) => {
     clearTimeout(toastTimer.current)
     setToast({ type, msg })
@@ -597,14 +601,31 @@ export default function AdminPanel() {
           {/* Left thin nav */}
           <aside style={{flex:"0 0 52px",width:52,background:C.dark,borderRight:`1px solid ${C.border}`,display:"flex",flexDirection:"column",alignItems:"center",padding:"20px 0",gap:20}}>
             {[
-              {id:"menu",icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>},
-              {id:"chat",icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>},
-            ].map(({id,icon})=>(
-              <button key={id} style={{all:"unset",cursor:"pointer",color:C.gray,display:"flex",alignItems:"center",justifyContent:"center",padding:8,borderRadius:8,transition:"color .2s,background .2s"}}
-                onMouseEnter={e=>{e.currentTarget.style.color=C.white;e.currentTarget.style.background="rgba(255,255,255,.07)"}}
-                onMouseLeave={e=>{e.currentTarget.style.color=C.gray;e.currentTarget.style.background="none"}}
-              >{icon}</button>
-            ))}
+  {
+    id: "menu",
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
+    onClick: () => navigate("/questions"),
+  },
+  {
+    id: "chat",
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+    onClick: undefined,
+  },
+].map(({ id, icon, onClick }) => (
+  <button
+    key={id}
+    onClick={onClick}
+    style={{
+      all: "unset", cursor: "pointer", color: C.gray,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      padding: 8, borderRadius: 8, transition: "color .2s,background .2s",
+    }}
+    onMouseEnter={e => { e.currentTarget.style.color = C.white; e.currentTarget.style.background = "rgba(255,255,255,.07)" }}
+    onMouseLeave={e => { e.currentTarget.style.color = C.gray;  e.currentTarget.style.background = "none" }}
+  >
+    {icon}
+  </button>
+))}
           </aside>
 
           {/* Main content — switches between sections */}
