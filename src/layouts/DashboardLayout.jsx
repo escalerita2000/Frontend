@@ -12,11 +12,8 @@
 */
 
 import { useState, useRef, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
-import {
-  AreaChart, Area, BarChart, Bar, LineChart, Line,
-  PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer,
-} from "recharts"
+import { useNavigate, useLocation, Outlet } from "react-router-dom"
+import { logoutUser } from "../services/authService"
 
 /* ══════════════════════════════════════
    PALETA DE COLORES
@@ -62,29 +59,8 @@ const AvisLogo = ({ size = 26 }) => (
   </svg>
 )
 
-/* ══════════════════════════════════════
-   DATOS MOCK — reemplazar con API
-══════════════════════════════════════ */
-const visitasData  = [{t:"Ene",v:980},{t:"Feb",v:1200},{t:"Mar",v:1050},{t:"Abr",v:1400},{t:"May",v:1750},{t:"Jun",v:1600},{t:"Jul",v:2134}]
-const registrosData= [{mes:"May",a:180,b:249},{mes:"Jun",a:310,b:379},{mes:"Jul",a:280,b:421}]
-const erroresData  = [{t:"L",v:3},{t:"M",v:5},{t:"X",v:2},{t:"J",v:8},{t:"V",v:6},{t:"S",v:10},{t:"D",v:12}]
-const pieData      = [{name:"No reg.",value:27},{name:"Reg.",value:73}]
-const PIE_COLORS   = [C.green, "#1a3a1a"]
 
-const USERS_INIT = [
-  {id:1, name:"Pepito Perez",     role:"ADMIN",      active:true,  initials:"PP", color:"#2a5a4a"},
-  {id:2, name:"Joseu Lopez",      role:"USER",       active:false, initials:"JL", color:"#3a4a2a"},
-  {id:3, name:"Valentina Zuarez", role:"INSTRUCTOR", active:true,  initials:"VZ", color:"#5a3a2a"},
-  {id:4, name:"Mapale Morado",    role:"USER",       active:false, initials:"MM", color:"#2a3a5a"},
-  {id:5, name:"Kamila Garcia",    role:"ADMIN",      active:true,  initials:"KG", color:"#4a2a5a"},
-  {id:6, name:"Julyana Capera",   role:"USER",       active:false, initials:"JC", color:"#5a4a2a"},
-  {id:7, name:"Johann Bohorquez", role:"USER",       active:false, initials:"JB", color:"#2a4a5a"},
-  {id:8, name:"Lizet Arenas",     role:"ADMIN",      active:true,  initials:"LA", color:"#3a5a2a"},
-  {id:9, name:"Laura Martinez",   role:"ADMIN",      active:true,  initials:"LM", color:"#5a2a3a"},
-  {id:10,name:"Duber Leonardo",   role:"INSTRUCTOR", active:false, initials:"DL", color:"#2a5a5a"},
-  {id:11,name:"Carlos Ruiz",      role:"USER",       active:true,  initials:"CR", color:"#4a3a2a"},
-  {id:12,name:"Sofia Mendez",     role:"ADMIN",      active:true,  initials:"SM", color:"#2a4a3a"},
-]
+const PIE_COLORS   = [C.green, "#1a3a1a"]
 
 const PER_PAGE = 10
 
@@ -291,227 +267,36 @@ const PanelBtn = ({ id, label, active, hov, setHov, setActive, icon }) => (
   </button>
 )
 
-/* ══════════════════════════════════════
-   SECTION: APPLICATION (Dashboard)
-══════════════════════════════════════ */
-const SectionApplication = () => (
-  <div style={{flex:"1 1 0",minWidth:0,minHeight:0,background:C.greenMid,padding:24,display:"grid",gridTemplateColumns:"1fr 1fr",gridTemplateRows:"1fr 1fr",gap:18,height:"100%",boxSizing:"border-box",overflow:"hidden"}}>
-
-    {/* Visitas */}
-    <div style={{background:C.greenBg,borderRadius:10,padding:"16px 18px 14px",display:"flex",flexDirection:"column",border:`1px solid rgba(61,156,58,.18)`,overflow:"hidden",minHeight:0}}>
-      <p style={{flexShrink:0,fontSize:".68rem",fontWeight:700,letterSpacing:".18em",textTransform:"uppercase",color:"rgba(255,255,255,.7)",marginBottom:8}}>Visitas de la Página</p>
-      <div style={{flex:"1 1 0",minHeight:0,position:"relative"}}>
-        <div style={{position:"absolute",inset:0}}>
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={visitasData} margin={{top:4,right:4,left:-32,bottom:0}}>
-              <defs><linearGradient id="gV" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={C.green} stopOpacity={.45}/><stop offset="95%" stopColor={C.green} stopOpacity={0}/></linearGradient></defs>
-              <XAxis dataKey="t" hide/><YAxis hide/><Tooltip content={<Tip/>}/>
-              <Area type="monotone" dataKey="v" stroke={C.greenL} strokeWidth={2} fill="url(#gV)" dot={false}/>
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      <p style={{flexShrink:0,fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.9rem",letterSpacing:".05em",color:C.white,marginTop:8,lineHeight:1}}>2.134</p>
-    </div>
-
-    {/* Registros */}
-    <div style={{background:C.greenBg,borderRadius:10,padding:"16px 18px 14px",display:"flex",flexDirection:"column",border:`1px solid rgba(61,156,58,.18)`,overflow:"hidden",minHeight:0}}>
-      <p style={{flexShrink:0,fontSize:".68rem",fontWeight:700,letterSpacing:".18em",textTransform:"uppercase",color:"rgba(255,255,255,.7)",marginBottom:8}}>Registros de Usuario</p>
-      <div style={{flex:"1 1 0",minHeight:0,position:"relative"}}>
-        <div style={{position:"absolute",inset:0}}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={registrosData} margin={{top:4,right:4,left:-32,bottom:0}} barGap={4} barCategoryGap="30%">
-              <XAxis dataKey="mes" hide/><YAxis hide/><Tooltip content={<Tip/>}/>
-              <Bar dataKey="a" fill="#1e5c1e" radius={[3,3,0,0]}/>
-              <Bar dataKey="b" fill={C.green} radius={[3,3,0,0]}/>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      <div style={{flexShrink:0,display:"flex",justifyContent:"space-around",marginTop:6}}>
-        {registrosData.map(d=><span key={d.mes} style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1rem",letterSpacing:".06em",color:C.white}}>{d.b}</span>)}
-      </div>
-    </div>
-
-    {/* No registrados */}
-    <div style={{background:C.greenBg,borderRadius:10,padding:"16px 18px 14px",display:"flex",flexDirection:"column",border:`1px solid rgba(61,156,58,.18)`,overflow:"hidden",minHeight:0}}>
-      <p style={{flexShrink:0,fontSize:".68rem",fontWeight:700,letterSpacing:".18em",textTransform:"uppercase",color:"rgba(255,255,255,.7)",marginBottom:8}}>Usuarios No Registrados</p>
-      <div style={{flex:"1 1 0",minHeight:0,display:"flex",alignItems:"center",gap:18}}>
-        <div style={{flex:"0 0 110px",height:110,position:"relative"}}>
-          <div style={{position:"absolute",inset:0}}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={28} outerRadius={50} startAngle={90} endAngle={-270} dataKey="value" strokeWidth={0}>
-                  {pieData.map((_,i)=><Cell key={i} fill={PIE_COLORS[i]}/>)}
-                </Pie>
-                <Tooltip content={<Tip/>}/>
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-        <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.6rem",letterSpacing:".04em",color:C.white,lineHeight:1}}>27%</p>
-      </div>
-    </div>
-
-    {/* Errores */}
-    <div style={{background:C.greenBg,borderRadius:10,padding:"16px 18px 14px",display:"flex",flexDirection:"column",border:`1px solid rgba(61,156,58,.18)`,overflow:"hidden",minHeight:0}}>
-      <p style={{flexShrink:0,fontSize:".68rem",fontWeight:700,letterSpacing:".18em",textTransform:"uppercase",color:"rgba(255,255,255,.7)",marginBottom:8}}>Errores de la Página</p>
-      <div style={{flex:"1 1 0",minHeight:0,position:"relative"}}>
-        <div style={{position:"absolute",inset:0}}>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={erroresData} margin={{top:4,right:4,left:-32,bottom:0}}>
-              <XAxis dataKey="t" hide/><YAxis hide/><Tooltip content={<Tip/>}/>
-              <Line type="monotone" dataKey="v" stroke={C.greenL} strokeWidth={2} dot={false}/>
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      <p style={{flexShrink:0,fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.9rem",letterSpacing:".05em",color:C.white,marginTop:8,lineHeight:1}}>12</p>
-    </div>
-
-  </div>
-)
-
-/* ══════════════════════════════════════
-   SECTION: CONFIGURATION (Users CRUD)
-══════════════════════════════════════ */
-const SectionConfiguration = ({ showToast }) => {
-  const [users,   setUsers]   = useState(USERS_INIT)
-  const [page,    setPage]    = useState(1)
-  const [editing, setEditing] = useState(null)
-
-  const totalPages = Math.ceil(users.length / PER_PAGE)
-  const pageUsers  = users.slice((page-1)*PER_PAGE, page*PER_PAGE)
-
-  const handleDelete = (id) => {
-    setUsers(prev => prev.filter(u=>u.id!==id))
-    showToast("success","Usuario eliminado correctamente")
-  }
-
-  const handleSave = (form) => {
-    if(!form.name.trim()){
-      showToast("error","El nombre no puede estar vacío")
-      return
-    }
-    setUsers(prev=>prev.map(u=>u.id===editing.id
-      ? {...u, name:form.name, surname:form.surname, email:form.email, message:form.message, role:form.role}
-      : u
-    ))
-    showToast("success","Cambios al usuario exitoso")
-    setEditing(null)
-  }
-
-  const roleColor = r => r==="ADMIN" ? C.greenL : r==="INSTRUCTOR" ? C.teal : C.white
-
-  return (
-    <div style={{flex:"1 1 0",minWidth:0,minHeight:0,background:C.greenMid,padding:"20px 24px",display:"flex",flexDirection:"column",overflow:"hidden",boxSizing:"border-box"}}>
-
-      {/* Tabla */}
-      <div style={{flex:"1 1 0",minHeight:0,background:"#161616",borderRadius:10,border:`1px solid ${C.border}`,overflow:"hidden",display:"flex",flexDirection:"column"}}>
-        <table style={{width:"100%",borderCollapse:"collapse",tableLayout:"fixed"}}>
-          <thead>
-            <tr style={{borderBottom:`1px solid ${C.border}`}}>
-              {["Name","Rol","Active","Actions"].map((h,i)=>(
-                <th key={h} style={{padding:"14px 16px",fontSize:".68rem",fontWeight:700,letterSpacing:".18em",textTransform:"uppercase",color:"rgba(255,255,255,.5)",textAlign: i>=2?"center":"left",background:"#161616",fontFamily:"'Outfit',sans-serif"}}>
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {pageUsers.map(user=>(
-              <tr key={user.id} style={{borderBottom:`1px solid rgba(61,156,58,.08)`}}>
-
-                {/* Name */}
-                <td style={{padding:"10px 16px",verticalAlign:"middle"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:12}}>
-                    <div style={{width:38,height:38,borderRadius:"50%",background:user.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:".72rem",fontWeight:700,color:C.white,flexShrink:0,border:`2px solid rgba(61,156,58,.3)`}}>
-                      {user.initials}
-                    </div>
-                    <span style={{fontFamily:"'Outfit',sans-serif",fontSize:".88rem",color:C.white}}>{user.name}</span>
-                  </div>
-                </td>
-
-                {/* Role */}
-                <td style={{padding:"10px 16px",verticalAlign:"middle"}}>
-                  <span style={{fontFamily:"'Outfit',sans-serif",fontSize:".82rem",fontWeight:600,letterSpacing:".06em",color:roleColor(user.role)}}>{user.role}</span>
-                </td>
-
-                {/* Active */}
-                <td style={{padding:"10px 16px",textAlign:"center",verticalAlign:"middle"}}>
-                  {user.active
-                    ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C.greenL} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C.red} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                  }
-                </td>
-
-                {/* Actions */}
-                <td style={{padding:"10px 16px",textAlign:"center",verticalAlign:"middle"}}>
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
-                    {/* Edit */}
-                    <button onClick={()=>setEditing(user)} style={{all:"unset",cursor:"pointer",color:C.gray,padding:5,borderRadius:5,transition:"color .2s, background .2s",display:"flex"}}
-                      onMouseEnter={e=>{e.currentTarget.style.color=C.greenL;e.currentTarget.style.background="rgba(61,156,58,.12)"}}
-                      onMouseLeave={e=>{e.currentTarget.style.color=C.gray;e.currentTarget.style.background="none"}}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                      </svg>
-                    </button>
-                    {/* Delete */}
-                    <button onClick={()=>handleDelete(user.id)} style={{all:"unset",cursor:"pointer",color:C.gray,padding:5,borderRadius:5,transition:"color .2s, background .2s",display:"flex"}}
-                      onMouseEnter={e=>{e.currentTarget.style.color=C.red;e.currentTarget.style.background="rgba(224,85,85,.12)"}}
-                      onMouseLeave={e=>{e.currentTarget.style.color=C.gray;e.currentTarget.style.background="none"}}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                      </svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Paginación */}
-      <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",gap:6,paddingTop:14}}>
-        <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1}
-          style={{all:"unset",cursor:"pointer",fontFamily:"'Outfit',sans-serif",fontSize:".82rem",fontWeight:600,color:C.gray,padding:"5px 10px",borderRadius:5}}>←</button>
-        {Array.from({length:totalPages},(_,i)=>i+1).map(n=>(
-          <button key={n} onClick={()=>setPage(n)}
-            style={{all:"unset",cursor:"pointer",fontFamily:"'Outfit',sans-serif",fontSize:".82rem",fontWeight:600,letterSpacing:".06em",color:page===n?C.white:C.gray,padding:"6px 11px",borderRadius:5,background:page===n?C.greenD:"none",border:page===n?`1px solid ${C.green}`:"1px solid transparent"}}>
-            {n}
-          </button>
-        ))}
-        <button style={{all:"unset",cursor:"pointer",fontFamily:"'Outfit',sans-serif",fontSize:".82rem",fontWeight:600,color:C.gray,padding:"5px 10px",borderRadius:5}}>···</button>
-        <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page===totalPages}
-          style={{all:"unset",cursor:"pointer",fontFamily:"'Outfit',sans-serif",fontSize:".82rem",fontWeight:600,color:C.gray,padding:"5px 10px",borderRadius:5}}>→</button>
-      </div>
-
-      {/* Modal edición */}
-      {editing && <EditModal user={editing} onClose={()=>setEditing(null)} onSave={handleSave}/>}
-    </div>
-  )
-}
 
 /* ══════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════ */
-export default function AdminPanel() {
-  const [section, setSection] = useState("app")
-  const [hovP,    setHovP]    = useState(null)
-  const [toast,   setToast]   = useState(null)
+export default function DashboardLayout() {
+  const [hovP, setHovP] = useState(null)
+  const [toast, setToast] = useState(null)
   const toastTimer = useRef(null)
-  const navigate   = useNavigate()
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  // Mapeo de rutas a IDs de sección para resaltar el botón activo
+  const getActiveSection = () => {
+    const path = location.pathname;
+    if (path.includes("/dashboard")) return "app";
+    if (path.includes("/configuration") || path.includes("/database") || path.includes("/users")) return "cfg";
+    if (path.includes("/account")) return "acc";
+    return null;
+  }
+
+  const section = getActiveSection();
+
+  const handleSectionChange = (id) => {
+    if (id === "app") navigate("/dashboard");
+    else if (id === "cfg") navigate("/database");
+    else if (id === "acc") navigate("/account");
+  }
 
   const handleLogout = () => {
-    /*
-      ── Conecta tu lógica de cierre de sesión aquí ──
-      authService.logout()
-      clearTokens()
-    */
+    logoutUser()
     navigate("/Login")
   }
 
@@ -607,20 +392,16 @@ export default function AdminPanel() {
             ))}
           </aside>
 
-          {/* Main content — switches between sections */}
-          {section === "app" && <SectionApplication/>}
-          {section === "cfg" && <SectionConfiguration showToast={showToast}/>}
-          {section === "acc" && (
-            <div style={{flex:"1 1 0",display:"flex",alignItems:"center",justifyContent:"center",background:C.greenMid,color:C.white,fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:".1em",opacity:.4}}>
-              MY ACCOUNT — próximamente
-            </div>
-          )}
+          {/* Main content — renders child routes */}
+          <div style={{ flex: "1 1 0", display: "flex", flexDirection: "column", overflow: "hidden", background: C.greenMid }}>
+            <Outlet context={{ showToast }} />
+          </div>
 
           {/* Right panel */}
           <aside style={{flex:"0 0 200px",width:200,background:C.dark,borderLeft:`1px solid ${C.border}`,display:"flex",flexDirection:"column",padding:"24px 0",gap:2}}>
-            <PanelBtn id="app" label="Application"   active={section} hov={hovP} setHov={setHovP} setActive={setSection} icon={iconApp}/>
-            <PanelBtn id="cfg" label="Configuration" active={section} hov={hovP} setHov={setHovP} setActive={setSection} icon={iconCfg}/>
-            <PanelBtn id="acc" label="My Account"    active={section} hov={hovP} setHov={setHovP} setActive={setSection} icon={iconAcc}/>
+            <PanelBtn id="app" label="Application"   active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconApp}/>
+            <PanelBtn id="cfg" label="Configuration" active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconCfg}/>
+            <PanelBtn id="acc" label="My Account"    active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconAcc}/>
           </aside>
 
         </div>
