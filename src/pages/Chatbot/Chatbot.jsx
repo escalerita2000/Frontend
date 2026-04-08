@@ -14,6 +14,7 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { useNavigate } from "react-router-dom"                          // ← AGREGAR
 import Sidebar from "../../components/Sidebar/Sidebar"
 import { sendMessage as apiSendMessage, getChatHistory } from "../../services/chatService"
+import { getKnowledgeBase } from "../../services/apiExtras"
 
 const SUGGESTIONS = [
   "¿Cómo puedo crear una cuenta?",
@@ -26,25 +27,25 @@ let chatCounter = 1
 
 function createNewChat() {
   return {
-    id:        `chat-${Date.now()}`,
-    title:     `Chat ${chatCounter++}`,
-    messages:  [],
+    id: `chat-${Date.now()}`,
+    title: `Chat ${chatCounter++}`,
+    messages: [],
     createdAt: new Date(),
   }
 }
 
 export default function Chatbot() {
-  const [chats,          setChats]          = useState([])
-  const [activeChatId,   setActiveChatId]   = useState(null)
-  const [inputValue,     setInputValue]     = useState("")
-  const [isTyping,       setIsTyping]       = useState(false)
-  const [showSuggestions,setShowSuggestions]= useState(false)
-  const [sidebarOpen,    setSidebarOpen]    = useState(true)
+  const [chats, setChats] = useState([])
+  const [activeChatId, setActiveChatId] = useState(null)
+  const [inputValue, setInputValue] = useState("")
+  const [isTyping, setIsTyping] = useState(false)
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
   const messagesEndRef = useRef(null)
-  const inputRef       = useRef(null)
-  const canvasRef      = useRef(null)
+  const inputRef = useRef(null)
+  const canvasRef = useRef(null)
   const navigate = useNavigate()                                        // ← AGREGAR
- 
+
   const handleViewHistory = useCallback(() => {                         // ← AGREGAR
     navigate("/chatHistory")                                            // ← ajusta la ruta según tu AppRoutes
   }, [navigate])
@@ -57,7 +58,7 @@ export default function Chatbot() {
         const history = historyResponse.data || historyResponse
         if (history && Array.isArray(history)) {
           const msgs = history.map((msg, index) => ({
-            id:   msg.id || Date.now() + index,
+            id: msg.id || Date.now() + index,
             role: msg.role === 'user' ? 'user' : 'bot',
             text: msg.content || msg.message || msg.text || "",
             time: msg.created_at
@@ -88,7 +89,7 @@ export default function Chatbot() {
     const particles = []
 
     const resize = () => {
-      canvas.width  = canvas.offsetWidth
+      canvas.width = canvas.offsetWidth
       canvas.height = canvas.offsetHeight
     }
     resize()
@@ -114,7 +115,7 @@ export default function Chatbot() {
         ctx.fill()
         p.x += p.dx
         p.y += p.dy
-        if (p.x < 0 || p.x > canvas.width)  p.dx *= -1
+        if (p.x < 0 || p.x > canvas.width) p.dx *= -1
         if (p.y < 0 || p.y > canvas.height) p.dy *= -1
       })
       animId = requestAnimationFrame(draw)
@@ -171,7 +172,7 @@ export default function Chatbot() {
     }
 
     const userMsg = {
-      id:   Date.now(),
+      id: Date.now(),
       role: "user",
       text: trimmed,
       time: new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" }),
@@ -181,12 +182,12 @@ export default function Chatbot() {
       prev.map((c) =>
         c.id === targetId
           ? {
-              ...c,
-              title: c.messages.length === 0
-                ? trimmed.slice(0, 30) + (trimmed.length > 30 ? "…" : "")
-                : c.title,
-              messages: [...c.messages, userMsg],
-            }
+            ...c,
+            title: c.messages.length === 0
+              ? trimmed.slice(0, 30) + (trimmed.length > 30 ? "…" : "")
+              : c.title,
+            messages: [...c.messages, userMsg],
+          }
           : c
       )
     )
@@ -201,12 +202,14 @@ export default function Chatbot() {
       setChats((prev) =>
         prev.map((c) =>
           c.id === targetId
-            ? { ...c, messages: [...c.messages, {
-                id:   Date.now() + 1,
+            ? {
+              ...c, messages: [...c.messages, {
+                id: Date.now() + 1,
                 role: "bot",
                 text: respuestaBot || "Sin respuesta",
                 time: new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" }),
-              }]}
+              }]
+            }
             : c
         )
       )
@@ -214,12 +217,14 @@ export default function Chatbot() {
       setChats((prev) =>
         prev.map((c) =>
           c.id === targetId
-            ? { ...c, messages: [...c.messages, {
-                id:   Date.now() + 1,
+            ? {
+              ...c, messages: [...c.messages, {
+                id: Date.now() + 1,
                 role: "bot",
                 text: "Error conectando con el servidor",
                 time: new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" }),
-              }]}
+              }]
+            }
             : c
         )
       )
@@ -236,14 +241,14 @@ export default function Chatbot() {
   }
 
   const activeChat = chats.find((c) => c.id === activeChatId) || null
-  const isWelcome  = !activeChat || activeChat.messages.length === 0
+  const isWelcome = !activeChat || activeChat.messages.length === 0
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="app-root">
       <canvas ref={canvasRef} className="bg-canvas" />
 
-        <Sidebar
+      <Sidebar
         chats={chats}
         activeChatId={activeChatId}
         onNewChat={handleNewChat}
@@ -261,12 +266,12 @@ export default function Chatbot() {
             <div className="welcome-logo-wrap">
               <div className="welcome-logo-icon">
                 <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="30" cy="30" r="28" stroke="#2d6a2d" strokeWidth="1.5" opacity="0.3"/>
-                  <path d="M30 8 C30 8, 38 16, 38 24 C38 32, 30 36, 30 36 C30 36, 22 32, 22 24 C22 16, 30 8, 30 8Z" fill="#2d6a2d" opacity="0.8"/>
-                  <path d="M30 52 C30 52, 38 44, 38 36 C38 28, 30 24, 30 24 C30 24, 22 28, 22 36 C22 44, 30 52, 30 52Z" fill="#2d6a2d" opacity="0.5"/>
-                  <path d="M8 30 C8 30, 16 22, 24 22 C32 22, 36 30, 36 30 C36 30, 32 38, 24 38 C16 38, 8 30, 8 30Z" fill="#2d6a2d" opacity="0.6"/>
-                  <path d="M52 30 C52 30, 44 22, 36 22 C28 22, 24 30, 24 30 C24 30, 28 38, 36 38 C44 38, 52 30, 52 30Z" fill="#2d6a2d" opacity="0.4"/>
-                  <circle cx="30" cy="30" r="4" fill="#2d6a2d"/>
+                  <circle cx="30" cy="30" r="28" stroke="#2d6a2d" strokeWidth="1.5" opacity="0.3" />
+                  <path d="M30 8 C30 8, 38 16, 38 24 C38 32, 30 36, 30 36 C30 36, 22 32, 22 24 C22 16, 30 8, 30 8Z" fill="#2d6a2d" opacity="0.8" />
+                  <path d="M30 52 C30 52, 38 44, 38 36 C38 28, 30 24, 30 24 C30 24, 22 28, 22 36 C22 44, 30 52, 30 52Z" fill="#2d6a2d" opacity="0.5" />
+                  <path d="M8 30 C8 30, 16 22, 24 22 C32 22, 36 30, 36 30 C36 30, 32 38, 24 38 C16 38, 8 30, 8 30Z" fill="#2d6a2d" opacity="0.6" />
+                  <path d="M52 30 C52 30, 44 22, 36 22 C28 22, 24 30, 24 30 C24 30, 28 38, 36 38 C44 38, 52 30, 52 30Z" fill="#2d6a2d" opacity="0.4" />
+                  <circle cx="30" cy="30" r="4" fill="#2d6a2d" />
                 </svg>
               </div>
               <div className="welcome-brand">
@@ -281,10 +286,10 @@ export default function Chatbot() {
               <div className="input-row">
                 <button className="mic-btn" title="Voz">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                    <line x1="12" y1="19" x2="12" y2="23"/>
-                    <line x1="8"  y1="23" x2="16" y2="23"/>
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    <line x1="12" y1="19" x2="12" y2="23" />
+                    <line x1="8" y1="23" x2="16" y2="23" />
                   </svg>
                 </button>
                 <input
@@ -302,15 +307,15 @@ export default function Chatbot() {
                   title="Enviar"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <line x1="12" y1="19" x2="12" y2="5"/>
-                    <polyline points="5 12 12 5 19 12"/>
+                    <line x1="12" y1="19" x2="12" y2="5" />
+                    <polyline points="5 12 12 5 19 12" />
                   </svg>
                 </button>
               </div>
               <div className="input-footer">
                 <button className="suggestions-btn" onClick={() => setShowSuggestions((s) => !s)}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="9 18 15 12 9 6"/>
+                    <polyline points="9 18 15 12 9 6" />
                   </svg>
                   SUGERENCIAS
                 </button>
@@ -337,8 +342,8 @@ export default function Chatbot() {
                   {msg.role === "bot" && (
                     <div className="avatar bot-avatar">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <circle cx="12" cy="8" r="4"/>
-                        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                        <circle cx="12" cy="8" r="4" />
+                        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
                       </svg>
                     </div>
                   )}
@@ -349,8 +354,8 @@ export default function Chatbot() {
                   {msg.role === "user" && (
                     <div className="avatar user-avatar">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <circle cx="12" cy="8" r="4"/>
-                        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                        <circle cx="12" cy="8" r="4" />
+                        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
                       </svg>
                     </div>
                   )}
@@ -361,16 +366,16 @@ export default function Chatbot() {
                 <div className="message-row bot">
                   <div className="avatar bot-avatar">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <circle cx="12" cy="8" r="4"/>
-                      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                      <circle cx="12" cy="8" r="4" />
+                      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
                     </svg>
                   </div>
                   <div className="bubble bot typing-bubble">
-                    <span className="dot"/><span className="dot"/><span className="dot"/>
+                    <span className="dot" /><span className="dot" /><span className="dot" />
                   </div>
                 </div>
               )}
-              <div ref={messagesEndRef}/>
+              <div ref={messagesEndRef} />
             </div>
 
             <div className="input-bar-wrap">
@@ -378,10 +383,10 @@ export default function Chatbot() {
                 <div className="input-row">
                   <button className="mic-btn" title="Voz">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                      <line x1="12" y1="19" x2="12" y2="23"/>
-                      <line x1="8"  y1="23" x2="16" y2="23"/>
+                      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                      <line x1="12" y1="19" x2="12" y2="23" />
+                      <line x1="8" y1="23" x2="16" y2="23" />
                     </svg>
                   </button>
                   <input
@@ -399,15 +404,15 @@ export default function Chatbot() {
                     title="Enviar"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <line x1="12" y1="19" x2="12" y2="5"/>
-                      <polyline points="5 12 12 5 19 12"/>
+                      <line x1="12" y1="19" x2="12" y2="5" />
+                      <polyline points="5 12 12 5 19 12" />
                     </svg>
                   </button>
                 </div>
                 <div className="input-footer">
                   <button className="suggestions-btn" onClick={() => setShowSuggestions((s) => !s)}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="9 18 15 12 9 6"/>
+                      <polyline points="9 18 15 12 9 6" />
                     </svg>
                     SUGERENCIAS
                   </button>
