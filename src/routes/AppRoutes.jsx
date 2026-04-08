@@ -28,6 +28,7 @@ import Statistics    from "../pages/Dashboard/Statistics"
 import Configuration from "../pages/Dashboard/Configuration"
 import Account       from "../pages/Dashboard/Account"
 import DataManager   from "../pages/Database/DataManager"
+import QuestionsPanel from "../pages/Dashboard/QuestionsPanel"
 
 // Utilidades
 import NotFound from "../pages/NotFound/NotFound"
@@ -65,6 +66,7 @@ return (
             <Route path="/database"      element={<DataManager />} />
             {/* /users redirige a /database para unificar la gestión */}
             <Route path="/users"         element={<Navigate to="/database" replace />} />
+            <Route path="/questions" element={<QuestionsPanel />} />
             </Route>
         </Route>
     </Route>
