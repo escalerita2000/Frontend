@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:8000/api"
+const API_URL = import.meta.env.VITE_API_URL;
 
 export const loginUser = async (data) => {
 
@@ -23,6 +23,10 @@ export const loginUser = async (data) => {
     }
 
     return result
+}
+
+export const logoutUser = () => {
+    localStorage.removeItem("token")
 }
 
 export const registerUser = async (data) => {

@@ -9,7 +9,7 @@ const Questions = () => {
     const fetchData = async () => {
       try {
         const response = await getKnowledgeBase();
-        setData(response);
+        setData(response.data);
       } catch (error) {
         console.error("Error fetching knowledge base:", error);
       } finally {
