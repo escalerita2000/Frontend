@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate } from "react-router-dom"
 
 // Guards
@@ -37,49 +36,41 @@ function AppRoutes() {
 
 return (
     <Routes>
-
       {/* ── Rutas públicas ─────────────────────────────────────────────── */}
-        <Route path="/"                element={<Home />} />
-        <Route path="/Register"        element={<Register />} />
-        <Route path="/login"           element={<Login />} />
-        <Route path="/RecoverPassword" element={<RecoverPassword />} />
-        <Route path="/RecoveryPassword"element={<RecoveryPassword />} />
-        <Route path="/ResetPassword"   element={<ResetPassword />} />
-        <Route path="/ChatbotInvitado" element={<ChatbotInvitado />} />
+      <Route path="/"                element={<Home />} />
+      <Route path="/Register"        element={<Register />} />
+      <Route path="/login"           element={<Login />} />
+      <Route path="/RecoverPassword" element={<RecoverPassword />} />
+      <Route path="/RecoveryPassword"element={<RecoveryPassword />} />
+      <Route path="/ResetPassword"   element={<ResetPassword />} />
+      <Route path="/ChatbotInvitado" element={<ChatbotInvitado />} />
 
       {/* ── Rutas privadas: aprendiz + admin ───────────────────────────── */}
-        <Route element={<PrivateRoute />}>
+      <Route element={<PrivateRoute />}>
         <Route element={<RoleRoute allowedRoles={['aprendiz', 'admin']} />}>
-        <Route path="/chatbot" element={<Chatbot />} />
-        <Route path="/chathistory" element={<ChatHistory />} />
+          <Route path="/chatbot" element={<Chatbot />} />
+          <Route path="/chathistory" element={<ChatHistory />} />
         </Route>
-    </Route>
-
-      {/* ── Rutas privadas: solo admin (con DashboardLayout) ───────────── */}
-        <Route element={<PrivateRoute />}>
-          <Route element={<RoleRoute allowedRoles={['admin']} />}>
-          <Route path="/questions" element={<QuestionsPanel />} />
-          </Route>
+        
         <Route element={<RoleRoute allowedRoles={['admin']} />}>
-            <Route element={<DashboardLayout />}>
+          <Route element={<DashboardLayout />}>
             <Route path="/dashboard"     element={<Dashboard />} />
             <Route path="/statistics"    element={<Statistics />} />
+            <Route path="/questions"     element={<QuestionsPanel />} />
             <Route path="/configuration" element={<Configuration />} />
             <Route path="/account"       element={<Account />} />
             <Route path="/database"      element={<DataManager />} />
-            {/* /users redirige a /database para unificar la gestión */}
+            <Route path="/errors"        element={<div style={{padding:40, color:'#888'}}>Próximamente... Panel de Errores</div>} />
             <Route path="/users"         element={<Navigate to="/database" replace />} />
-            
-            </Route>
+          </Route>
         </Route>
-    </Route>
+      </Route>
 
       {/* ── 404 ────────────────────────────────────────────────────────── */}
-        <Route path="/404" element={<NotFound />} />
-        <Route path="*"    element={<Navigate to="/404" replace />} />
-
+      <Route path="/404" element={<NotFound />} />
+      <Route path="*"    element={<Navigate to="/404" replace />} />
     </Routes>
-    )
+  )
 }
 
 export default AppRoutes

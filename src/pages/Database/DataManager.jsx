@@ -15,7 +15,6 @@ const C = {
 
 const TABS = [
   { id: 'users', label: 'Usuarios' },
-  { id: 'questions', label: 'Preguntas' },
 ]
 
 const DataManager = () => {
@@ -74,7 +73,6 @@ const DataManager = () => {
       {/* Renderiza el componente segun tab activo */}
       <div style={{ animation: 'fadeIn .4s ease-out' }}>
         {activeTab === 'users' && <Users />}
-        {activeTab === 'questions' && <Questions />}
       </div>
 
       <style>{`

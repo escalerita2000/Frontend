@@ -40,7 +40,8 @@ export const registerUser = async (data) => {
     })
 
     if (!response.ok) {
-        throw new Error("Error en el registro o el correo ya existe");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Error en el registro o el correo ya existe");
     }
 
     const result = await response.json()
