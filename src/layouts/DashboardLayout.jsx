@@ -5,7 +5,9 @@
   Secciones:
     · APPLICATION  → Dashboard con gráficas (Stats)
     · CONFIGURATION → Tabla de usuarios con editar/eliminar
-    · MY ACCOUNT   → (puedes expandir)
+    · QUESTIONS    → Panel avanzado de preguntas
+    · ERRORS       → Panel de errores (placeholder)
+    · MY ACCOUNT   → Perfil y ajustes
 
   Dependencias:
     npm install recharts
@@ -59,24 +61,6 @@ const AvisLogo = ({ size = 26 }) => (
   </svg>
 )
 
-
-const PIE_COLORS   = [C.green, "#1a3a1a"]
-
-const PER_PAGE = 10
-
-/* ══════════════════════════════════════
-   TOOLTIP GRÁFICAS
-══════════════════════════════════════ */
-const Tip = ({ active, payload, label }) => {
-  if(!active||!payload?.length) return null
-  return (
-    <div style={{background:"#111",border:`1px solid ${C.border}`,borderRadius:6,padding:"5px 10px",fontFamily:"'Outfit',sans-serif",fontSize:".76rem",color:C.white}}>
-      {label&&<p style={{color:C.greenL,marginBottom:2}}>{label}</p>}
-      {payload.map((p,i)=><p key={i}>{p.value}</p>)}
-    </div>
-  )
-}
-
 /* ══════════════════════════════════════
    TOAST NOTIFICATION
 ══════════════════════════════════════ */
@@ -98,144 +82,6 @@ const Toast = ({ toast }) => {
       </p>
       <p style={{fontSize:".82rem",color:C.white}}>{toast.msg}</p>
     </div>
-  )
-}
-
-/* ══════════════════════════════════════
-   MODAL EDITAR USUARIO
-══════════════════════════════════════ */
-const EditModal = ({ user, onClose, onSave }) => {
-  const [form, setForm] = useState({
-    name:    user.name,
-    surname: user.surname || "",
-    email:   user.email   || "",
-    message: user.message || "",
-    role:    user.role    || "USER",
-  })
-
-  const set = k => e => setForm(p=>({...p,[k]:e.target.value}))
-
-  const inputStyle = {
-    width:"100%", padding:"11px 14px",
-    background:"#222", border:`1px solid #444`,
-    borderRadius:6, color:C.white,
-    fontFamily:"'Outfit',sans-serif", fontSize:".88rem",
-    outline:"none", boxSizing:"border-box",
-    transition:"border-color .2s",
-  }
-
-  const labelStyle = {
-    fontFamily:"'Outfit',sans-serif",
-    fontSize:".82rem", color:C.white,
-    marginBottom:6, display:"block",
-  }
-
-  return (
-    <>
-      {/* Backdrop */}
-      <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.6)",zIndex:200}}/>
-      {/* Modal */}
-      <div style={{
-        position:"fixed", top:"50%", left:"50%",
-        transform:"translate(-50%,-50%)",
-        zIndex:201, width:"100%", maxWidth:480,
-        background:"#1a1a1a",
-        border:`1px solid #333`, borderRadius:12,
-        padding:"28px 28px 24px", boxSizing:"border-box",
-        fontFamily:"'Outfit',sans-serif",
-      }}>
-        <h2 style={{color:C.white,fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:".08em",marginBottom:22}}>
-          Editar Usuario
-        </h2>
-
-        <div style={{display:"flex",flexDirection:"column",gap:16}}>
-          <div>
-            <label style={labelStyle}>Name</label>
-            <input value={form.name} onChange={set("name")} placeholder="Value" style={inputStyle}
-              onFocus={e=>e.target.style.borderColor=C.green}
-              onBlur={e =>e.target.style.borderColor="#444"}
-            />
-          </div>
-          <div>
-            <label style={labelStyle}>Surname</label>
-            <input value={form.surname} onChange={set("surname")} placeholder="Value" style={inputStyle}
-              onFocus={e=>e.target.style.borderColor=C.green}
-              onBlur={e =>e.target.style.borderColor="#444"}
-            />
-          </div>
-          <div>
-            <label style={labelStyle}>Email</label>
-            <input value={form.email} onChange={set("email")} placeholder="Value" type="email" style={inputStyle}
-              onFocus={e=>e.target.style.borderColor=C.green}
-              onBlur={e =>e.target.style.borderColor="#444"}
-            />
-          </div>
-
-          <div>
-            <label style={labelStyle}>Rol</label>
-            <div style={{display:"flex",gap:10}}>
-              {["ADMIN","USER","INSTRUCTOR"].map(r=>(
-                <button
-                  key={r}
-                  type="button"
-                  onClick={()=>setForm(p=>({...p,role:r}))}
-                  style={{
-                    flex:1, padding:"10px 0",
-                    borderRadius:6, cursor:"pointer",
-                    fontFamily:"'Outfit',sans-serif",
-                    fontSize:".72rem", fontWeight:700,
-                    letterSpacing:".12em", textTransform:"uppercase",
-                    border:`1.5px solid ${form.role===r
-                      ? r==="ADMIN" ? C.greenL
-                      : r==="INSTRUCTOR" ? C.teal
-                      : "#fff"
-                      : "#444"}`,
-                    background: form.role===r
-                      ? r==="ADMIN" ? "rgba(82,196,79,.15)"
-                      : r==="INSTRUCTOR" ? "rgba(74,184,200,.15)"
-                      : "rgba(255,255,255,.1)"
-                      : "#222",
-                    color: form.role===r
-                      ? r==="ADMIN" ? C.greenL
-                      : r==="INSTRUCTOR" ? C.teal
-                      : C.white
-                      : C.gray,
-                    transition:"all .2s",
-                  }}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label style={labelStyle}>Message</label>
-            <textarea value={form.message} onChange={set("message")} placeholder="Value" rows={4} style={{...inputStyle,resize:"vertical"}}
-              onFocus={e=>e.target.style.borderColor=C.green}
-              onBlur={e =>e.target.style.borderColor="#444"}
-            />
-          </div>
-
-          <button
-            onClick={()=>onSave(form)}
-            style={{
-              width:"100%", padding:14,
-              background:C.greenD, color:C.white,
-              border:"none", borderRadius:6,
-              fontFamily:"'Outfit',sans-serif",
-              fontSize:".88rem", fontWeight:600,
-              letterSpacing:".1em", cursor:"pointer",
-              transition:"background .2s",
-            }}
-            onMouseEnter={e=>e.currentTarget.style.background=C.green}
-            onMouseLeave={e=>e.currentTarget.style.background=C.greenD}
-          >
-            Submit
-          </button>
-        </div>
-      </div>
-    </>
   )
 }
 
@@ -267,7 +113,6 @@ const PanelBtn = ({ id, label, active, hov, setHov, setActive, icon }) => (
   </button>
 )
 
-
 /* ══════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════ */
@@ -281,17 +126,21 @@ export default function DashboardLayout() {
   // Mapeo de rutas a IDs de sección para resaltar el botón activo
   const getActiveSection = () => {
     const path = location.pathname;
-    if (path.includes("/dashboard")) return "app";
-    if (path.includes("/configuration") || path.includes("/database") || path.includes("/users")) return "cfg";
-    if (path.includes("/account")) return "acc";
+    if (path.includes("/dashboard"))     return "app";
+    if (path.includes("/database") || path.includes("/configuration") || path.includes("/users")) return "cfg";
+    if (path.includes("/questions"))      return "qns";
+    if (path.includes("/errors"))         return "err";
+    if (path.includes("/account"))        return "acc";
     return null;
   }
 
   const section = getActiveSection();
 
   const handleSectionChange = (id) => {
-    if (id === "app") navigate("/dashboard");
+    if (id === "app")      navigate("/dashboard");
     else if (id === "cfg") navigate("/database");
+    else if (id === "qns") navigate("/questions");
+    else if (id === "err") navigate("/errors");
     else if (id === "acc") navigate("/account");
   }
 
@@ -317,6 +166,16 @@ export default function DashboardLayout() {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="3"/>
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  )
+  const iconQns = (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-7.6 8.38 8.38 0 0 1 3.8.9L21 3.5v8z"/>
+    </svg>
+  )
+  const iconErr = (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
     </svg>
   )
   const iconAcc = (
@@ -401,6 +260,8 @@ export default function DashboardLayout() {
           <aside style={{flex:"0 0 200px",width:200,background:C.dark,borderLeft:`1px solid ${C.border}`,display:"flex",flexDirection:"column",padding:"24px 0",gap:2}}>
             <PanelBtn id="app" label="Application"   active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconApp}/>
             <PanelBtn id="cfg" label="Configuration" active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconCfg}/>
+            <PanelBtn id="qns" label="Questions"     active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconQns}/>
+            <PanelBtn id="err" label="Errors Panel"  active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconErr}/>
             <PanelBtn id="acc" label="My Account"    active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconAcc}/>
           </aside>
 
