@@ -28,6 +28,7 @@ import Configuration from "../pages/Dashboard/Configuration"
 import Account       from "../pages/Dashboard/Account"
 import DataManager   from "../pages/Database/DataManager"
 import QuestionsPanel from "../pages/Dashboard/QuestionsPanel"
+import PasswordGenerator from "../pages/Dashboard/PasswordGenerator"
 
 // Utilidades
 import NotFound from "../pages/NotFound/NotFound"
@@ -60,6 +61,7 @@ return (
             <Route path="/configuration" element={<Configuration />} />
             <Route path="/account"       element={<Account />} />
             <Route path="/database"      element={<DataManager />} />
+            <Route path="/password-generator" element={<PasswordGenerator />} />
             <Route path="/errors"        element={<div style={{padding:40, color:'#888'}}>Próximamente... Panel de Errores</div>} />
             <Route path="/users"         element={<Navigate to="/database" replace />} />
           </Route>

@@ -131,6 +131,7 @@ export default function DashboardLayout() {
     if (path.includes("/questions"))      return "qns";
     if (path.includes("/errors"))         return "err";
     if (path.includes("/account"))        return "acc";
+    if (path.includes("/password-generator")) return "pwd";
     return null;
   }
 
@@ -142,6 +143,7 @@ export default function DashboardLayout() {
     else if (id === "qns") navigate("/questions");
     else if (id === "err") navigate("/errors");
     else if (id === "acc") navigate("/account");
+    else if (id === "pwd") navigate("/password-generator");
   }
 
   const handleLogout = () => {
@@ -181,6 +183,11 @@ export default function DashboardLayout() {
   const iconAcc = (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8"/>
+    </svg>
+  )
+  const iconPwd = (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
     </svg>
   )
 
@@ -263,6 +270,7 @@ export default function DashboardLayout() {
             <PanelBtn id="qns" label="Questions"     active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconQns}/>
             <PanelBtn id="err" label="Errors Panel"  active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconErr}/>
             <PanelBtn id="acc" label="My Account"    active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconAcc}/>
+            <PanelBtn id="pwd" label="Password Gen"  active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconPwd}/>
           </aside>
 
         </div>

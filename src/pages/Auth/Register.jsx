@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useContext } from 'react'
 import { Link, useNavigate } from "react-router-dom"
 import { AuthContext } from '../../context/AuthContext'
+import { generatePassword } from '../../utils/passwordGenerator'
 
 const AvisLogo = ({ size = 80 }) => (
   <svg width={size} height={size} viewBox="0 0 120 120" fill="none">
@@ -79,6 +80,8 @@ const Register = () => {
   })
   const [errors,  setErrors]  = useState({})
   const [loading, setLoading] = useState(false)
+  const [showPwd,  setShowPwd]  = useState(false)
+  const [showPwd2, setShowPwd2] = useState(false)
 
   const { register } = useContext(AuthContext)
   const canvasRef = useRef(null)
@@ -147,6 +150,14 @@ const Register = () => {
     }
   }
 
+  /* ── Generador de Contraseña (Centralizado) ── */
+  const handleGeneratePassword = () => {
+    const newPassword = generatePassword({ length: 12 });
+    if (newPassword) {
+      setForm(prev => ({ ...prev, password: newPassword, password2: newPassword }));
+    }
+  }
+
   return (
     <main style={{
       width:"100vw", height:"100vh", maxHeight:"100vh",
@@ -189,8 +200,67 @@ const Register = () => {
           <Field label="Nombre completo" value={form.nombre}   onChange={set("nombre")}   error={errors.nombre}/>
           <Field label="Usuario"         value={form.usuario}  onChange={set("usuario")}  error={errors.usuario}/>
           <Field label="Correo"          type="email" value={form.email} onChange={set("email")} error={errors.email} placeholder="CORREO ELECTRÓNICO"/>
-          <Field label="Contraseña"      type="password" value={form.password}  onChange={set("password")}  error={errors.password}/>
-          <Field label="Confirmar contraseña" type="password" value={form.password2} onChange={set("password2")} error={errors.password2} placeholder="CONFIRMAR CONTRASEÑA"/>
+          <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+            <Field label="Contraseña" type={showPwd ? "text" : "password"} value={form.password} onChange={set("password")} error={errors.password} />
+            <div style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", display: "flex", gap: 5, zIndex: 10 }}>
+              <button
+                type="button"
+                onClick={() => setShowPwd(!showPwd)}
+                title={showPwd ? "Ocultar" : "Mostrar"}
+                style={{
+                  background: "#f0f0f0", color: "#666", border: "1.5px solid #d0d0d0", 
+                  borderRadius: 6, width: 38, height: 38, display: "flex", 
+                  alignItems: "center", justifyContent: "center", cursor: "pointer",
+                  transition: "all .2s"
+                }}
+              >
+                {showPwd ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 19c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={handleGeneratePassword}
+                title="Generar contraseña segura"
+                style={{
+                  background: "#f0f0f0", color: "#3d9c3a", border: "1.5px solid #3d9c3a", 
+                  borderRadius: 6, width: 38, height: 38, display: "flex", 
+                  alignItems: "center", justifyContent: "center", cursor: "pointer",
+                  transition: "all .2s"
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = "#3d9c3a"; e.currentTarget.style.color = "#fff"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "#f0f0f0"; e.currentTarget.style.color = "#3d9c3a"; }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 3l1.912 3.874l4.276.621l-3.094 3.016l.73 4.259L12 12.75l-3.824 2.01l.73-4.259l-3.094-3.016l4.276-.621L12 3z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+            <Field label="Confirmar contraseña" type={showPwd2 ? "text" : "password"} value={form.password2} onChange={set("password2")} error={errors.password2} placeholder="CONFIRMAR CONTRASEÑA"/>
+            <button
+              type="button"
+              onClick={() => setShowPwd2(!showPwd2)}
+              title={showPwd2 ? "Ocultar" : "Mostrar"}
+              style={{
+                position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
+                background: "#f0f0f0", color: "#666", border: "1.5px solid #d0d0d0", 
+                borderRadius: 6, width: 38, height: 38, display: "flex", 
+                alignItems: "center", justifyContent: "center", cursor: "pointer",
+                transition: "all .2s", zIndex: 10
+              }}
+            >
+              {showPwd2 ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 19c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              )}
+            </button>
+          </div>
 
           {/* Error general */}
           {errors.general && (
