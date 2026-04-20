@@ -93,15 +93,69 @@ export const resetPassword = async (data) => {
 // KNOWLEDGE (Base de Conocimiento)
 // ==========================================
 
-export const getKnowledgeBase = async () => {
-    const response = await fetch(`${API_URL}/knowledge`, {
+export const getKnowledgeBase = async (status = null, search = "") => {
+    let url = `${API_URL}/knowledge`;
+    const params = new URLSearchParams();
+    
+    if (status) params.append("status", status);
+    if (search) params.append("search", search);
+    
+    if (params.toString()) {
+        url += `?${params.toString()}`;
+    }
+
+    const response = await fetch(url, {
         method: "GET",
-        headers: getHeaders(false) // Enviamos headers (token) por si acaso en el futuro se protege
+        headers: getHeaders(false)
     });
 
     if (!response.ok) {
         const err = await response.json().catch(() => ({}));
         throw new Error(err.message || "Error obteniendo la base de conocimiento");
+    }
+
+    return await response.json();
+};
+
+export const createKnowledge = async (data) => {
+    const response = await fetch(`${API_URL}/knowledge`, {
+        method: "POST",
+        headers: getHeaders(true),
+        body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || "Error al crear conocimiento");
+    }
+
+    return await response.json();
+};
+
+export const updateKnowledge = async (id, data) => {
+    const response = await fetch(`${API_URL}/knowledge/${id}`, {
+        method: "PUT",
+        headers: getHeaders(true),
+        body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || "Error al actualizar conocimiento");
+    }
+
+    return await response.json();
+};
+
+export const deleteKnowledge = async (id) => {
+    const response = await fetch(`${API_URL}/knowledge/${id}`, {
+        method: "DELETE",
+        headers: getHeaders(false)
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || "Error al eliminar conocimiento");
     }
 
     return await response.json();

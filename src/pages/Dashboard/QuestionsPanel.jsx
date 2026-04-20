@@ -1,9 +1,6 @@
-/*
-  AVIS – Panel de Preguntas Avanzado
-  QuestionsPanel.jsx - Refactored for AVIS Portal Theme
-*/
-
 import { useState, useEffect } from "react"
+import { getKnowledgeBase, getDashboardStats, updateKnowledge } from "../../services/apiExtras"
+import { useOutletContext, useSearchParams } from "react-router-dom"
 
 const C = {
   black:    "#0a0a0a",
@@ -19,33 +16,9 @@ const C = {
   red:      "#e05555",
 }
 
-const MOCK_PENDING = [
-  { id: 1, pregunta: "¿Cuando abren las Incripciones?",                      fecha: "2025-01-10", estado: "Pendiente" },
-  { id: 2, pregunta: "¿Como de hace una PQR?",                               fecha: "2025-01-12", estado: "Pendiente" },
-  { id: 3, pregunta: "¿Que beneficios ofrece el contrato de aprendizaje?",   fecha: "2025-01-14", estado: "Pendiente" },
-]
-
-const MOCK_RESPONDIDAS = [
-  { id: 4, pregunta: "¿Qué es el SENA?",                 fecha: "2025-01-05", respuesta: "El SENA es el Servicio Nacional de Aprendizaje." },
-  { id: 5, pregunta: "¿Cómo me inscribo a un curso?",    fecha: "2025-01-06", respuesta: "Puedes inscribirte en el portal SOFIA Plus." },
-  { id: 6, pregunta: "¿Cuánto dura la etapa práctica?",  fecha: "2025-01-07", respuesta: "La duración depende del programa de formación." },
-]
-
-const MOCK_DOS_RESPUESTAS = [
-  { id: 7, pregunta: "¿Qué documentos necesito?",       fecha: "2025-01-08", respuesta1: "Cédula de ciudadanía.", respuesta2: "Diploma de bachiller." },
-  { id: 8, pregunta: "¿Puedo estudiar y trabajar?",     fecha: "2025-01-09", respuesta1: "Sí, con horario flexible.", respuesta2: "Depende del programa." },
-]
-
-const MOCK_STATS = {
-  registradas:  140,
-  pendientes:   30,
-  respondidas:  90,
-  paraRevisar:  15,
-}
-
 const StatusBadge = ({ estado }) => {
-  const isPending  = estado === "Pendiente"
-  const isRevision = estado === "En Revision"
+  const isPending  = estado === "pendiente"
+  const isRevision = estado === "en_revision"
   const bg = isPending ? "rgba(224,85,85,0.15)" : isRevision ? "rgba(253,230,138,0.15)" : "rgba(82,196,79,0.15)";
   const color = isPending ? C.red : isRevision ? "#fcd34d" : C.greenL;
   
@@ -58,7 +31,7 @@ const StatusBadge = ({ estado }) => {
       border: `1px solid ${color}`,
       letterSpacing: ".04em", textTransform: "uppercase"
     }}>
-      {estado}
+      {estado ? estado.replace('_', ' ') : 'N/A'}
     </span>
   )
 }
@@ -103,9 +76,38 @@ const SectionDashboard = ({ stats }) => (
   </div>
 )
 
-const SectionSinRespuesta = ({ questions }) => {
-  const [editingId, setEditingId] = useState(null);
-  
+const SectionQuestionsTable = ({ title, questions, onRefresh }) => {
+  const { showToast } = useOutletContext();
+  const [answeringId, setAnsweringId] = useState(null);
+  const [responseText, setResponseText] = useState("");
+
+  const handleResponse = async (id, currentStatus) => {
+    if (!responseText.trim()) return;
+    try {
+      // Si estamos respondiendo una pendiente, pasa a en_revision (Borrador)
+      // Si ya estaba en revisión o respondida, mantenemos el estado o dejamos en respondida si se prefiere
+      const nextStatus = currentStatus === 'pendiente' ? 'en_revision' : currentStatus;
+      
+      await updateKnowledge(id, { respuesta: responseText, status: nextStatus });
+      if (showToast) showToast("success", nextStatus === 'en_revision' ? "Guardado como borrador (En Revisión)" : "Respuesta actualizada");
+      setAnsweringId(null);
+      setResponseText("");
+      if (onRefresh) onRefresh();
+    } catch (err) {
+       if (showToast) showToast("error", "Error al guardar respuesta");
+    }
+  };
+
+  const handleApprove = async (id) => {
+    try {
+      await updateKnowledge(id, { status: 'respondida' });
+      if (showToast) showToast("success", "Pregunta aprobada y publicada");
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      if (showToast) showToast("error", "Error al aprobar pregunta");
+    }
+  };
+
   const thStyle = {
     padding: "16px", fontSize: ".7rem", fontWeight: 700,
     letterSpacing: ".15em", textTransform: "uppercase",
@@ -121,26 +123,73 @@ const SectionSinRespuesta = ({ questions }) => {
   return (
     <div style={{ padding: "40px" }}>
       <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "2rem", color: C.white, marginBottom: 24 }}>
-        Preguntas sin respuesta
+        {title}
       </h1>
 
       <div style={{ background: "#161616", borderRadius: 12, border: `1px solid ${C.border}`, overflow: "hidden" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
-              <th style={{ ...thStyle, width: "50%" }}>Pregunta</th>
-              <th style={{ ...thStyle, width: "20%" }}>Fecha</th>
-              <th style={{ ...thStyle, width: "30%", textAlign: "center" }}>Estado</th>
+              <th style={{ ...thStyle, width: "40%" }}>Pregunta</th>
+              <th style={{ ...thStyle, width: "15%" }}>Categoría</th>
+              <th style={{ ...thStyle, width: "15%" }}>Fecha</th>
+              <th style={{ ...thStyle, width: "15%", textAlign: "center" }}>Estado</th>
+              <th style={{ ...thStyle, width: "15%" }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {questions.map(q => (
+            {questions.length === 0 ? (
+              <tr><td colSpan="5" style={{...tdStyle, textAlign: 'center', padding: '40px', color: C.gray}}>No hay registros disponibles.</td></tr>
+            ) : questions.map(q => (
               <tr key={q.id}>
-                <td style={tdStyle}>{q.pregunta}</td>
-                <td style={{ ...tdStyle, color: C.gray, fontSize: ".8rem" }}>{q.fecha}</td>
-                <td style={{ ...tdStyle, textAlign: "center" }}>
-                  <StatusBadge estado={q.estado}/>
+                <td style={tdStyle}>
+                  <div>{q.pregunta}</div>
+                  {q.respuesta && <div style={{fontSize: '.8rem', color: C.greenL, marginTop: 4}}>R: {q.respuesta}</div>}
                 </td>
+                <td style={{ ...tdStyle, color: C.gray, fontSize: ".8rem" }}>{q.categoria || 'N/A'}</td>
+                <td style={{ ...tdStyle, color: C.gray, fontSize: ".8rem" }}>{new Date(q.created_at).toLocaleDateString()}</td>
+                <td style={{ ...tdStyle, textAlign: "center" }}>
+                  <StatusBadge estado={q.status}/>
+                </td>
+                 <td style={tdStyle}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      {answeringId === q.id ? (
+                        <div style={{display: 'flex', flexDirection: 'column', gap: 5}}>
+                          <textarea 
+                            value={responseText} 
+                            onChange={e => setResponseText(e.target.value)}
+                            placeholder="Escribe la respuesta..."
+                            style={{background: '#222', color: '#fff', border: `1px solid ${C.border}`, borderRadius: 4, padding: 5, fontSize: '.8rem', minWidth: '200px'}}
+                          />
+                          <div style={{display: 'flex', gap: 5}}>
+                            <button onClick={() => handleResponse(q.id, q.status)} style={{background: C.green, border: 'none', color: '#fff', fontSize: '.7rem', padding: '4px 8px', borderRadius: 4, cursor: 'pointer'}}>Guardar</button>
+                            <button onClick={() => setAnsweringId(null)} style={{background: 'transparent', border: `1px solid ${C.gray}`, color: C.gray, fontSize: '.7rem', padding: '4px 8px', borderRadius: 4, cursor: 'pointer'}}>X</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button 
+                          onClick={() => { setAnsweringId(q.id); setResponseText(q.respuesta || ""); }}
+                          style={{all: 'unset', cursor: 'pointer', color: C.greenL, fontSize: '.8rem', fontWeight: 600}}
+                        >
+                          {q.status === 'pendiente' ? 'RESPONDER' : 'EDITAR'}
+                        </button>
+                      )}
+
+                      {q.status === 'en_revision' && answeringId !== q.id && (
+                        <button 
+                          onClick={() => handleApprove(q.id)}
+                          style={{
+                            background: C.greenBg, border: `1px solid ${C.greenL}`, 
+                            color: C.greenL, fontSize: '.65rem', fontWeight: 700, 
+                            padding: '4px 10px', borderRadius: 4, cursor: 'pointer',
+                            letterSpacing: '.05em'
+                          }}
+                        >
+                          APROBAR
+                        </button>
+                      )}
+                    </div>
+                 </td>
               </tr>
             ))}
           </tbody>
@@ -172,14 +221,70 @@ const SidebarItem = ({ id, label, icon, active, onClick }) => (
 )
 
 export default function QuestionsPanel() {
-  const [section, setSection] = useState("dashboard")
+  const { showToast } = useOutletContext();
+  const [searchParams] = useSearchParams();
+  const initialSection = searchParams.get("tab") || "dashboard";
+  const [section, setSection] = useState(initialSection)
+  const [loading, setLoading] = useState(false)
+  const [stats, setStats] = useState({ registradas: 0, pendientes: 0, respondidas: 0, paraRevisar: 0 })
+  const [questions, setQuestions] = useState([])
+  const [search, setSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
   
   const navItems = [
     { id: "dashboard",      label: "Dashboard",       icon: "📊" },
     { id: "sin-respuesta",  label: "Sin Respuesta",   icon: "🔴" },
     { id: "respondidas",    label: "Respondidas",     icon: "✅" },
-    { id: "dos-respuestas", label: "Multi-Resp",      icon: "💬" },
+    { id: "en-revision",    label: "En Revisión",     icon: "⏳" },
   ]
+
+  const fetchStats = async () => {
+    try {
+      const res = await getDashboardStats();
+      if (res.knowledge) {
+        setStats({
+          registradas: res.knowledge.total,
+          pendientes: res.knowledge.pendiente,
+          respondidas: res.knowledge.respondida,
+          paraRevisar: res.knowledge.en_revision
+        });
+      }
+    } catch (err) {
+      console.error("Error al cargar estadísticas:", err);
+    }
+  };
+
+  const fetchData = async (status, query = "") => {
+    try {
+      setLoading(true);
+      const res = await getKnowledgeBase(status, query);
+      setQuestions(res.data || []);
+    } catch (err) {
+      if (showToast) showToast("error", "Error al cargar preguntas");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    if (section === "dashboard") {
+      fetchStats();
+    } else {
+      const statusMap = {
+        "sin-respuesta": "pendiente",
+        "respondidas": "respondida",
+        "en-revision": "en_revision"
+      };
+      fetchData(statusMap[section], debouncedSearch);
+    }
+  }, [section, debouncedSearch]);
 
   return (
     <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
@@ -203,13 +308,40 @@ export default function QuestionsPanel() {
       </aside>
 
       {/* Content Area */}
-      <main style={{ flex: 1, overflow: "auto", background: C.black }}>
-        {section === "dashboard"      && <SectionDashboard stats={MOCK_STATS}/>}
-        {section === "sin-respuesta"  && <SectionSinRespuesta questions={MOCK_PENDING}/>}
-        {/* Placeholders for other sections */}
-        {(section === "respondidas" || section === "dos-respuestas") && (
-          <div style={{padding:40, color:C.gray}}>Módulo en desarrollo para integración con base de datos.</div>
+      <main style={{ flex: 1, overflow: "auto", background: C.black, display: 'flex', flexDirection: 'column' }}>
+        {/* Barra de Búsqueda (solo si no es dashboard) */}
+        {section !== "dashboard" && (
+          <div style={{ padding: '24px 40px 0', display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ position: 'relative', width: '100%', maxWidth: '300px' }}>
+              <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>🔍</span>
+              <input 
+                type="text" 
+                placeholder="Buscar pregunta..." 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{
+                  width: '100%',
+                  background: '#161616',
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 8,
+                  padding: '10px 12px 10px 38px',
+                  color: C.white,
+                  fontFamily: "'Outfit', sans-serif",
+                  fontSize: '.85rem',
+                  outline: 'none',
+                  transition: 'border-color .2s'
+                }}
+              />
+            </div>
+          </div>
         )}
+
+        {loading && <div style={{padding: 40, color: C.gray}}>Cargando...</div>}
+        
+        {!loading && section === "dashboard"      && <SectionDashboard stats={stats}/>}
+        {!loading && section === "sin-respuesta"  && <SectionQuestionsTable title="Preguntas sin respuesta" questions={questions} onRefresh={() => fetchData("pendiente", debouncedSearch)}/>}
+        {!loading && section === "respondidas"    && <SectionQuestionsTable title="Preguntas respondidas" questions={questions} onRefresh={() => fetchData("respondida", debouncedSearch)}/>}
+        {!loading && section === "en-revision"    && <SectionQuestionsTable title="Preguntas en revisión" questions={questions} onRefresh={() => fetchData("en_revision", debouncedSearch)}/>}
       </main>
     </div>
   )
