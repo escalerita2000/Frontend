@@ -8,6 +8,10 @@ import { RoleRoute }    from "./RoleRoute"
 import DashboardLayout from "../layouts/DashboardLayout"
 import MainLayout      from "../layouts/MainLayout"
 
+
+//instructor layout
+import InstructorLayout  from "../layouts/Instructorlayout"
+
 // Páginas públicas
 import Home              from "../pages/Home/Home"
 import Register          from "../pages/Auth/Register"
@@ -25,7 +29,7 @@ import ChatHistory from "../pages/Chatbot/ChatHistory"
 import Dashboard     from "../pages/Dashboard/Dashboard"
 import Statistics    from "../pages/Dashboard/Statistics"
 import Configuration from "../pages/Dashboard/Configuration"
-import Account       from "../pages/Dashboard/Account"
+import { MyAccountPage } from "../layouts/DashboardLayout"
 import DataManager   from "../pages/Database/DataManager"
 import QuestionsPanel from "../pages/Dashboard/QuestionsPanel"
 import PasswordGenerator from "../pages/Dashboard/PasswordGenerator"
@@ -52,6 +56,21 @@ return (
           <Route path="/chatbot" element={<Chatbot />} />
           <Route path="/chathistory" element={<ChatHistory />} />
         </Route>
+
+          {/* ── Rutas del Instructor ───────────────────────────────────────── */}
+          <Route element={<RoleRoute allowedRoles={["instructor"]} />}>
+            <Route element={<InstructorLayout />}>
+              {/* Panel de preguntas en modo solo lectura */}
+              <Route
+                path="/instructor"
+                element={<QuestionsPanel readOnly={true} />}
+              />
+            </Route>
+          </Route>
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+
+        {/* ── Rutas privadas: solo admin ──────────────────────────────── */}
         
         <Route element={<RoleRoute allowedRoles={['admin']} />}>
           <Route element={<DashboardLayout />}>
@@ -59,7 +78,7 @@ return (
             <Route path="/statistics"    element={<Statistics />} />
             <Route path="/questions"     element={<QuestionsPanel />} />
             <Route path="/configuration" element={<Configuration />} />
-            <Route path="/account"       element={<Account />} />
+            <Route path="/account" element={<MyAccountPage />} />
             <Route path="/database"      element={<DataManager />} />
             <Route path="/password-generator" element={<PasswordGenerator />} />
             <Route path="/errors"        element={<div style={{padding:40, color:'#888'}}>Próximamente... Panel de Errores</div>} />

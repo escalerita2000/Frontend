@@ -78,7 +78,8 @@ const SectionDashboard = ({ stats }) => (
   </div>
 )
 
-const SectionQuestionsTable = ({ title, questions, onRefresh }) => {
+// ── readOnly: oculta botones de Responder / Editar / Aprobar ──────────────────
+const SectionQuestionsTable = ({ title, questions, onRefresh, readOnly = false }) => {
   const { showToast } = useOutletContext();
   const [answeringId, setAnsweringId] = useState(null);
   const [responseText, setResponseText] = useState("");
@@ -86,17 +87,14 @@ const SectionQuestionsTable = ({ title, questions, onRefresh }) => {
   const handleResponse = async (id, currentStatus) => {
     if (!responseText.trim()) return;
     try {
-      // Si estamos respondiendo una pendiente, pasa a en_revision (Borrador)
-      // Si ya estaba en revisión o respondida, mantenemos el estado o dejamos en respondida si se prefiere
       const nextStatus = currentStatus === 'pendiente' ? 'en_revision' : currentStatus;
-      
       await updateKnowledge(id, { respuesta: responseText, status: nextStatus });
       if (showToast) showToast("success", nextStatus === 'en_revision' ? "Guardado como borrador (En Revisión)" : "Respuesta actualizada");
       setAnsweringId(null);
       setResponseText("");
       if (onRefresh) onRefresh();
-    } catch (err) {
-       if (showToast) showToast("error", "Error al guardar respuesta");
+    } catch {
+      if (showToast) showToast("error", "Error al guardar respuesta");
     }
   };
 
@@ -105,7 +103,7 @@ const SectionQuestionsTable = ({ title, questions, onRefresh }) => {
       await updateKnowledge(id, { status: 'respondida' });
       if (showToast) showToast("success", "Pregunta aprobada y publicada");
       if (onRefresh) onRefresh();
-    } catch (err) {
+    } catch {
       if (showToast) showToast("error", "Error al aprobar pregunta");
     }
   };
@@ -132,7 +130,6 @@ const SectionQuestionsTable = ({ title, questions, onRefresh }) => {
         <div style={{ display: 'flex', gap: 10 }}>
           <button 
             onClick={() => {
-              // Convertimos a un formato más legible para Excel
               const excelData = questions.map(q => ({
                 Pregunta: q.pregunta,
                 Respuesta: q.respuesta || 'Sin respuesta',
@@ -162,28 +159,40 @@ const SectionQuestionsTable = ({ title, questions, onRefresh }) => {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
-              <th style={{ ...thStyle, width: "40%" }}>Pregunta</th>
+              <th style={{ ...thStyle, width: readOnly ? "45%" : "40%" }}>Pregunta</th>
               <th style={{ ...thStyle, width: "15%" }}>Categoría</th>
               <th style={{ ...thStyle, width: "15%" }}>Fecha</th>
-              <th style={{ ...thStyle, width: "15%", textAlign: "center" }}>Estado</th>
-              <th style={{ ...thStyle, width: "15%" }}>Acciones</th>
+              <th style={{ ...thStyle, width: readOnly ? "25%" : "15%", textAlign: "center" }}>Estado</th>
+              {/* Columna Acciones solo para admin */}
+              {!readOnly && <th style={{ ...thStyle, width: "15%" }}>Acciones</th>}
             </tr>
           </thead>
           <tbody>
             {questions.length === 0 ? (
-              <tr><td colSpan="5" style={{...tdStyle, textAlign: 'center', padding: '40px', color: C.gray}}>No hay registros disponibles.</td></tr>
+              <tr>
+                <td colSpan={readOnly ? 4 : 5} style={{...tdStyle, textAlign: 'center', padding: '40px', color: C.gray}}>
+                  No hay registros disponibles.
+                </td>
+              </tr>
             ) : questions.map(q => (
               <tr key={q.id}>
                 <td style={tdStyle}>
                   <div>{q.pregunta}</div>
-                  {q.respuesta && <div style={{fontSize: '.8rem', color: C.greenL, marginTop: 4}}>R: {q.respuesta}</div>}
+                  {q.respuesta && (
+                    <div style={{fontSize: '.8rem', color: C.greenL, marginTop: 4}}>
+                      R: {q.respuesta}
+                    </div>
+                  )}
                 </td>
                 <td style={{ ...tdStyle, color: C.gray, fontSize: ".8rem" }}>{q.categoria || 'N/A'}</td>
                 <td style={{ ...tdStyle, color: C.gray, fontSize: ".8rem" }}>{new Date(q.created_at).toLocaleDateString()}</td>
                 <td style={{ ...tdStyle, textAlign: "center" }}>
                   <StatusBadge estado={q.status}/>
                 </td>
-                 <td style={tdStyle}>
+
+                {/* Acciones: solo visibles si NO es readOnly */}
+                {!readOnly && (
+                  <td style={tdStyle}>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                       {answeringId === q.id ? (
                         <div style={{display: 'flex', flexDirection: 'column', gap: 5}}>
@@ -221,7 +230,8 @@ const SectionQuestionsTable = ({ title, questions, onRefresh }) => {
                         </button>
                       )}
                     </div>
-                 </td>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -252,7 +262,8 @@ const SidebarItem = ({ id, label, icon, active, onClick }) => (
   </button>
 )
 
-export default function QuestionsPanel() {
+// ── readOnly prop: cuando es true, se ocultan todas las acciones de edición ───
+export default function QuestionsPanel({ readOnly = false }) {
   const { showToast } = useOutletContext();
   const [searchParams] = useSearchParams();
   const initialSection = searchParams.get("tab") || "dashboard";
@@ -291,7 +302,7 @@ export default function QuestionsPanel() {
       setLoading(true);
       const res = await getKnowledgeBase(status, query);
       setQuestions(res.data || []);
-    } catch (err) {
+    } catch {
       if (showToast) showToast("error", "Error al cargar preguntas");
     } finally {
       setLoading(false);
@@ -299,9 +310,7 @@ export default function QuestionsPanel() {
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 500);
+    const timer = setTimeout(() => setDebouncedSearch(search), 500);
     return () => clearTimeout(timer);
   }, [search]);
 
@@ -370,10 +379,10 @@ export default function QuestionsPanel() {
 
         {loading && <div style={{padding: 40, color: C.gray}}>Cargando...</div>}
         
-        {!loading && section === "dashboard"      && <SectionDashboard stats={stats}/>}
-        {!loading && section === "sin-respuesta"  && <SectionQuestionsTable title="Preguntas sin respuesta" questions={questions} onRefresh={() => fetchData("pendiente", debouncedSearch)}/>}
-        {!loading && section === "respondidas"    && <SectionQuestionsTable title="Preguntas respondidas" questions={questions} onRefresh={() => fetchData("respondida", debouncedSearch)}/>}
-        {!loading && section === "en-revision"    && <SectionQuestionsTable title="Preguntas en revisión" questions={questions} onRefresh={() => fetchData("en_revision", debouncedSearch)}/>}
+        {!loading && section === "dashboard"     && <SectionDashboard stats={stats}/>}
+        {!loading && section === "sin-respuesta" && <SectionQuestionsTable title="Preguntas sin respuesta" questions={questions} onRefresh={() => fetchData("pendiente", debouncedSearch)} readOnly={readOnly}/>}
+        {!loading && section === "respondidas"   && <SectionQuestionsTable title="Preguntas respondidas"   questions={questions} onRefresh={() => fetchData("respondida", debouncedSearch)}  readOnly={readOnly}/>}
+        {!loading && section === "en-revision"   && <SectionQuestionsTable title="Preguntas en revisión"   questions={questions} onRefresh={() => fetchData("en_revision", debouncedSearch)}  readOnly={readOnly}/>}
       </main>
     </div>
   )

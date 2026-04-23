@@ -8,6 +8,7 @@
     · QUESTIONS    → Panel avanzado de preguntas
     · ERRORS       → Panel de errores (placeholder)
     · MY ACCOUNT   → Perfil y ajustes
+    · PASSWORD GEN → Generador de contraseñas
 
   Dependencias:
     npm install recharts
@@ -114,36 +115,196 @@ const PanelBtn = ({ id, label, active, hov, setHov, setActive, icon }) => (
 )
 
 /* ══════════════════════════════════════
+   MY ACCOUNT — úsalo en AppRoutes así:
+     <Route path="account" element={<MyAccountPage/>}/>
+══════════════════════════════════════ */
+export function MyAccountPage() {
+  const adminInfo = (() => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}")
+      return {
+        nombre:   user.nombre   || user.name      || "Administrador",
+        apellido: user.apellido || user.surname    || "",
+        email:    user.email    || user.correo     || "admin@avis.com",
+        rol:      user.rol      || user.role       || "ADMIN",
+        usuario:  user.usuario  || user.username   || "admin",
+        foto:     user.foto     || user.avatar     || null,
+      }
+    } catch {
+      return { nombre:"Administrador", apellido:"", email:"admin@avis.com", rol:"ADMIN", usuario:"admin", foto:null }
+    }
+  })()
+
+  const navigate = useNavigate()
+  const handleLogout = () => {
+    logoutUser()
+    navigate("/Login")
+  }
+
+  const initials = `${adminInfo.nombre[0]||"A"}${adminInfo.apellido[0]||""}`.toUpperCase()
+
+  const fieldStyle = { display:"flex", flexDirection:"column", gap:4 }
+  const labelStyle = {
+    fontFamily:"'Outfit',sans-serif", fontSize:".68rem",
+    fontWeight:700, letterSpacing:".16em", textTransform:"uppercase",
+    color:C.gray,
+  }
+  const valueStyle = {
+    fontFamily:"'Outfit',sans-serif", fontSize:".92rem",
+    fontWeight:400, color:C.white,
+    background:"rgba(255,255,255,.05)",
+    border:`1px solid ${C.border}`, borderRadius:6,
+    padding:"10px 14px",
+  }
+
+  return (
+    <div style={{
+      flex:"1 1 0", minWidth:0, minHeight:0, width:"100%", height:"100%",
+      background:C.greenMid, overflow:"auto",
+      display:"flex", alignItems:"flex-start", justifyContent:"center",
+      padding:"48px 24px",
+    }}>
+      <div style={{
+        width:"100%", maxWidth:520,
+        background:C.dark, borderRadius:14,
+        border:`1px solid ${C.border}`,
+        padding:"36px 32px 28px",
+        display:"flex", flexDirection:"column", gap:24,
+      }}>
+
+        {/* Título */}
+        <h2 style={{
+          fontFamily:"'Bebas Neue',sans-serif",
+          fontSize:"1.6rem", letterSpacing:".1em",
+          color:C.white, margin:0,
+        }}>
+          Mi cuenta
+        </h2>
+
+        {/* Avatar + nombre */}
+        <div style={{display:"flex",alignItems:"center",gap:18}}>
+          {adminInfo.foto ? (
+            <img
+              src={adminInfo.foto} alt="avatar"
+              style={{width:72,height:72,borderRadius:"50%",objectFit:"cover",border:`2px solid ${C.green}`}}
+            />
+          ) : (
+            <div style={{
+              width:72, height:72, borderRadius:"50%",
+              background:C.greenD, border:`2px solid ${C.green}`,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.6rem",
+              color:C.white, flexShrink:0,
+            }}>
+              {initials}
+            </div>
+          )}
+          <div>
+            <p style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.3rem",letterSpacing:".06em",color:C.white,lineHeight:1}}>
+              {adminInfo.nombre} {adminInfo.apellido}
+            </p>
+            <span style={{
+              display:"inline-block", marginTop:6,
+              padding:"3px 12px", borderRadius:20,
+              background:"rgba(82,196,79,.15)",
+              border:`1px solid ${C.greenL}`,
+              fontFamily:"'Outfit',sans-serif",
+              fontSize:".7rem", fontWeight:700,
+              letterSpacing:".1em", color:C.greenL,
+              textTransform:"uppercase",
+            }}>
+              {adminInfo.rol}
+            </span>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div style={{height:1, background:C.border}}/>
+
+        {/* Campos */}
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <div style={fieldStyle}>
+            <span style={labelStyle}>Nombre completo</span>
+            <span style={valueStyle}>{adminInfo.nombre} {adminInfo.apellido}</span>
+          </div>
+          <div style={fieldStyle}>
+            <span style={labelStyle}>Usuario</span>
+            <span style={valueStyle}>{adminInfo.usuario}</span>
+          </div>
+          <div style={fieldStyle}>
+            <span style={labelStyle}>Correo electrónico</span>
+            <span style={valueStyle}>{adminInfo.email}</span>
+          </div>
+          <div style={fieldStyle}>
+            <span style={labelStyle}>Rol</span>
+            <span style={valueStyle}>{adminInfo.rol}</span>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div style={{height:1, background:C.border}}/>
+
+        {/* Botón cerrar sesión */}
+        <button
+          onClick={handleLogout}
+          style={{
+            width:"100%", padding:"13px",
+            background:"transparent",
+            border:`1.5px solid ${C.red}`,
+            borderRadius:8, cursor:"pointer",
+            fontFamily:"'Outfit',sans-serif",
+            fontSize:".82rem", fontWeight:700,
+            letterSpacing:".16em", textTransform:"uppercase",
+            color:C.red, display:"flex",
+            alignItems:"center", justifyContent:"center",
+            gap:10, transition:"background .2s",
+          }}
+          onMouseEnter={e=>e.currentTarget.style.background="rgba(224,85,85,.12)"}
+          onMouseLeave={e=>e.currentTarget.style.background="transparent"}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Cerrar Sesión
+        </button>
+
+      </div>
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════ */
 export default function DashboardLayout() {
-  const [hovP, setHovP] = useState(null)
-  const [toast, setToast] = useState(null)
+  const [hovP,      setHovP]  = useState(null)
+  const [toast,     setToast] = useState(null)
   const toastTimer = useRef(null)
-  const navigate = useNavigate()
-  const location = useLocation()
+  const navigate   = useNavigate()
+  const location   = useLocation()
 
-  // Mapeo de rutas a IDs de sección para resaltar el botón activo
   const getActiveSection = () => {
-    const path = location.pathname;
-    if (path.includes("/dashboard"))     return "app";
-    if (path.includes("/database") || path.includes("/configuration") || path.includes("/users")) return "cfg";
-    if (path.includes("/questions"))      return "qns";
-    if (path.includes("/errors"))         return "err";
-    if (path.includes("/account"))        return "acc";
-    if (path.includes("/password-generator")) return "pwd";
-    return null;
+    const path = location.pathname
+    if (path.includes("/dashboard"))          return "app"
+    if (path.includes("/database") || path.includes("/configuration") || path.includes("/users")) return "cfg"
+    if (path.includes("/questions"))          return "qns"
+    if (path.includes("/errors"))             return "err"
+    if (path.includes("/account"))            return "acc"
+    if (path.includes("/password-generator")) return "pwd"
+    return null
   }
 
-  const section = getActiveSection();
+  const section = getActiveSection()
 
   const handleSectionChange = (id) => {
-    if (id === "app")      navigate("/dashboard");
-    else if (id === "cfg") navigate("/database");
-    else if (id === "qns") navigate("/questions");
-    else if (id === "err") navigate("/errors");
-    else if (id === "acc") navigate("/account");
-    else if (id === "pwd") navigate("/password-generator");
+    if      (id === "app") navigate("/dashboard")
+    else if (id === "cfg") navigate("/database")
+    else if (id === "qns") navigate("/questions")
+    else if (id === "err") navigate("/errors")
+    else if (id === "acc") navigate("/account")
+    else if (id === "pwd") navigate("/password-generator")
   }
 
   const handleLogout = () => {
@@ -202,65 +363,34 @@ export default function DashboardLayout() {
 
       <div style={{width:"100vw",height:"100vh",overflow:"hidden",background:C.black,color:C.white,fontFamily:"'Outfit',sans-serif",display:"flex",flexDirection:"column"}}>
 
-        {/* ── TOP NAV ── */}
+        {/* ══ TOP NAV ══ */}
         <nav style={{flex:"0 0 48px",height:48,display:"flex",alignItems:"center",padding:"0 24px",borderBottom:`1px solid ${C.border}`,background:C.dark,position:"relative"}}>
-          {/* User icon — left */}
-          <button style={{all:"unset",cursor:"pointer",color:C.gray,display:"flex"}}>
+
+          <button
+            onClick={() => handleSectionChange("acc")}
+            title="Mi cuenta"
+            style={{all:"unset",cursor:"pointer",color:C.gray,display:"flex",transition:"color .2s"}}
+            onMouseEnter={e=>e.currentTarget.style.color=C.white}
+            onMouseLeave={e=>e.currentTarget.style.color=C.gray}
+          >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8"/>
             </svg>
           </button>
 
-          {/* Logo center */}
           <div style={{position:"absolute",left:"50%",transform:"translateX(-50%)",display:"flex",alignItems:"center",gap:9}}>
             <AvisLogo size={26}/>
             <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.45rem",letterSpacing:".1em",color:C.white}}>AVIS</span>
           </div>
 
-          {/* Cerrar sesión — right */}
-          <button
-            onClick={handleLogout}
-            title="Cerrar sesión"
-            style={{
-              all:"unset", cursor:"pointer",
-              marginLeft:"auto",
-              display:"flex", alignItems:"center", gap:8,
-              color:C.gray, padding:"6px 10px", borderRadius:6,
-              fontFamily:"'Outfit',sans-serif", fontSize:".72rem",
-              fontWeight:600, letterSpacing:".12em", textTransform:"uppercase",
-              transition:"color .2s, background .2s",
-            }}
-            onMouseEnter={e=>{e.currentTarget.style.color="#e05555";e.currentTarget.style.background="rgba(224,85,85,.1)"}}
-            onMouseLeave={e=>{e.currentTarget.style.color=C.gray;e.currentTarget.style.background="transparent"}}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-              <polyline points="16 17 21 12 16 7"/>
-              <line x1="21" y1="12" x2="9" y2="12"/>
-            </svg>
-            Cerrar sesión
-          </button>
         </nav>
 
-        {/* ── BODY ── */}
+        {/* ══ BODY ══ */}
         <div style={{flex:"1 1 0",minHeight:0,display:"flex",overflow:"hidden"}}>
 
-          {/* Left thin nav */}
-          <aside style={{flex:"0 0 52px",width:52,background:C.dark,borderRight:`1px solid ${C.border}`,display:"flex",flexDirection:"column",alignItems:"center",padding:"20px 0",gap:20}}>
-            {[
-              {id:"menu",icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>},
-              {id:"chat",icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>},
-            ].map(({id,icon})=>(
-              <button key={id} style={{all:"unset",cursor:"pointer",color:C.gray,display:"flex",alignItems:"center",justifyContent:"center",padding:8,borderRadius:8,transition:"color .2s,background .2s"}}
-                onMouseEnter={e=>{e.currentTarget.style.color=C.white;e.currentTarget.style.background="rgba(255,255,255,.07)"}}
-                onMouseLeave={e=>{e.currentTarget.style.color=C.gray;e.currentTarget.style.background="none"}}
-              >{icon}</button>
-            ))}
-          </aside>
-
-          {/* Main content — renders child routes */}
-          <div style={{ flex: "1 1 0", display: "flex", flexDirection: "column", overflow: "hidden", background: C.greenMid }}>
-            <Outlet context={{ showToast }} />
+          {/* Main content — renders child routes via Outlet */}
+          <div style={{flex:"1 1 0",display:"flex",flexDirection:"column",overflow:"hidden",background:C.greenMid}}>
+            <Outlet context={{ showToast }}/>
           </div>
 
           {/* Right panel */}
@@ -268,7 +398,7 @@ export default function DashboardLayout() {
             <PanelBtn id="app" label="Application"   active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconApp}/>
             <PanelBtn id="cfg" label="Configuration" active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconCfg}/>
             <PanelBtn id="qns" label="Questions"     active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconQns}/>
-            <PanelBtn id="err" label="sugerencias"  active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconErr}/>
+            <PanelBtn id="err" label="Sugerencias"   active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconErr}/>
             <PanelBtn id="acc" label="My Account"    active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconAcc}/>
             <PanelBtn id="pwd" label="Password Gen"  active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconPwd}/>
           </aside>
@@ -276,7 +406,6 @@ export default function DashboardLayout() {
         </div>
       </div>
 
-      {/* Toast */}
       <Toast toast={toast}/>
     </>
   )

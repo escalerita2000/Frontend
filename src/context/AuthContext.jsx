@@ -6,7 +6,11 @@ import { createContext, useState, useEffect } from 'react'
 import { mockLogin } from '../services/authMock'
 import { loginUser, registerUser } from '../services/authService'
 
-const USE_MOCK_LOGIN = false
+// ─── MODO DE LOGIN ────────────────────────────────────────────────────────────
+// true  → usa authMock.js (sin backend, para desarrollo/pruebas)
+// false → llama al backend real en http://127.0.0.1:8000
+// ─────────────────────────────────────────────────────────────────────────────
+const USE_MOCK_LOGIN = false  // ← cambia a false cuando conectes el backend
 
 export const AuthContext = createContext(null)
 
@@ -55,16 +59,17 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('avis_guest_tokens')
   }
 
-  const isAdmin    = user?.role === 'admin'
-  const isAprendiz = user?.role === 'aprendiz'
-  const isUser     = user?.role === 'user'
-  const hasRole    = (role)  => user?.role === role
-  const hasAnyRole = (roles) => roles.includes(user?.role)
+  const isAdmin      = user?.role === 'admin'
+  const isAprendiz   = user?.role === 'aprendiz'
+  const isUser       = user?.role === 'user'
+  const isInstructor = user?.role === 'instructor'
+  const hasRole      = (role)  => user?.role === role
+  const hasAnyRole   = (roles) => roles.includes(user?.role)
 
   if (loading) return null
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isAdmin, isAprendiz, isUser, hasRole, hasAnyRole }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isAdmin, isAprendiz, isUser, isInstructor, hasRole, hasAnyRole }}>
       {children}
     </AuthContext.Provider>
   )

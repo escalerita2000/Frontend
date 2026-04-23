@@ -37,6 +37,8 @@ function Login() {
         navigate("/chatbot")
       } else if (user.role === "admin") {
         navigate("/dashboard")
+      } else if (user.role === "instructor") {
+        navigate("/instructor")
       } else {
         navigate("/")
       }

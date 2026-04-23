@@ -6,7 +6,7 @@
 // ─── INSTRUCCIÓN ────────────────────────────────────────────────────────────
 // Agrega aquí los usuarios que necesites probar mientras no tienes backend.
 // Cuando tu backend en http://127.0.0.1:8000 esté listo, ve a AuthContext.jsx
-// y descomenta la línea que llama a loginUser (ver comentario allá).
+// y pon USE_MOCK_LOGIN = false (ver comentario allá).
 // ────────────────────────────────────────────────────────────────────────────
 
 const MOCK_USERS = [
@@ -23,7 +23,7 @@ const MOCK_USERS = [
     name: 'Aprendiz Demo',
     email: 'aprendiz@app.com',
     password: 'aprendiz123',
-    role: 'aprendiz',       // ← rol que usa tu ProtectedRoute original
+    role: 'aprendiz',
     avatar: 'AD',
   },
   {
@@ -33,6 +33,16 @@ const MOCK_USERS = [
     password: 'user123',
     role: 'user',
     avatar: 'UN',
+  },
+  // ── Instructor (cuenta de prueba) ─────────────────────────────────────────
+  // Elimina o reemplaza cuando el backend tenga el usuario real.
+  {
+    id: '4',
+    name: 'Instructor Demo',
+    email: 'instructor@app.com',
+    password: 'instructor123',
+    role: 'instructor',
+    avatar: 'ID',
   },
 ]
 
