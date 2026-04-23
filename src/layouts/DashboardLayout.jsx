@@ -268,7 +268,7 @@ export default function DashboardLayout() {
             <PanelBtn id="app" label="Application"   active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconApp}/>
             <PanelBtn id="cfg" label="Configuration" active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconCfg}/>
             <PanelBtn id="qns" label="Questions"     active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconQns}/>
-            <PanelBtn id="err" label="Errors Panel"  active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconErr}/>
+            <PanelBtn id="err" label="sugerencias"  active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconErr}/>
             <PanelBtn id="acc" label="My Account"    active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconAcc}/>
             <PanelBtn id="pwd" label="Password Gen"  active={section} hov={hovP} setHov={setHovP} setActive={handleSectionChange} icon={iconPwd}/>
           </aside>

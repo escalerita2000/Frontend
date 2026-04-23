@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react"
 import { getKnowledgeBase, getDashboardStats, updateKnowledge } from "../../services/apiExtras"
 import { useOutletContext, useSearchParams } from "react-router-dom"
+import { exportToCSV, exportToPDF_Report } from "../../utils/exportUtils"
+import { FiDownload } from "react-icons/fi"
 
 const C = {
   black:    "#0a0a0a",
@@ -122,9 +124,39 @@ const SectionQuestionsTable = ({ title, questions, onRefresh }) => {
 
   return (
     <div style={{ padding: "40px" }}>
-      <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "2rem", color: C.white, marginBottom: 24 }}>
-        {title}
-      </h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24 }}>
+        <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "2rem", color: C.white, margin: 0 }}>
+          {title}
+        </h1>
+        
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button 
+            onClick={() => {
+              // Convertimos a un formato más legible para Excel
+              const excelData = questions.map(q => ({
+                Pregunta: q.pregunta,
+                Respuesta: q.respuesta || 'Sin respuesta',
+                Categoría: q.categoria || 'N/A',
+                Fecha: new Date(q.created_at).toLocaleDateString(),
+                Estado: q.status
+              }));
+              import('../../utils/exportUtils').then(u => u.exportToExcel(excelData, `Preguntas_${title}.xlsx`));
+            }}
+            style={{ background: 'transparent', border: `1px solid ${C.gray}`, color: C.gray, padding: '6px 12px', borderRadius: 6, fontSize: '.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+          >
+            <FiDownload size={14}/> EXCEL
+          </button>
+          <button 
+            onClick={() => {
+              const config = { title: `REPORTE: ${title.toUpperCase()}`, sections: { preguntas: true } };
+              exportToPDF_Report(config, { preguntas: questions }, `Reporte_${title.replace(/\s+/g, '_')}.pdf`);
+            }}
+            style={{ background: 'transparent', border: `1px solid ${C.greenL}`, color: C.greenL, padding: '6px 12px', borderRadius: 6, fontSize: '.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+          >
+            <FiDownload size={14}/> PDF
+          </button>
+        </div>
+      </div>
 
       <div style={{ background: "#161616", borderRadius: 12, border: `1px solid ${C.border}`, overflow: "hidden" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>

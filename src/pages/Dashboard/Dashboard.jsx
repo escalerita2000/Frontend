@@ -11,13 +11,14 @@
 
 import { useState, useEffect } from "react"
 import { useOutletContext } from "react-router-dom"
-import { getDashboardStats } from "../../services/apiExtras"
+import { getKnowledgeBase, getDashboardStats } from "../../services/apiExtras"
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer,
   CartesianGrid
 } from "recharts"
-import { FiMaximize2, FiX } from "react-icons/fi"
+import { FiMaximize2, FiX, FiFileText, FiDownload } from "react-icons/fi"
+import { exportToPDF_Report, exportToCSV } from "../../utils/exportUtils"
 
 /* ══════════════════════════════════════
    PALETA DE COLORES
@@ -68,6 +69,17 @@ export default function Dashboard() {
   })
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(null) // { type, title, data, color }
+  
+  // Report States
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
+  const [showReportConfig, setShowReportConfig] = useState(false)
+  const [selectedSections, setSelectedSections] = useState({
+    visitas: true,
+    usuarios: true,
+    errores: true,
+    preguntas: false
+  })
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -106,6 +118,108 @@ export default function Dashboard() {
     setExpanded({ type, title, data, color });
   };
 
+  const handleExport = async (format) => {
+    // Filtrado de datos por fecha
+    const filterByDate = (data) => {
+      if (!startDate && !endDate) return data;
+      const start = startDate ? new Date(startDate + "T00:00:00") : new Date("2000-01-01");
+      const end = endDate ? new Date(endDate + "T23:59:59") : new Date("2100-01-01");
+      
+      return data.filter(item => {
+        const dateStr = item.fecha || item.created_at;
+        // Si no hay fecha y no se ha puesto filtro, se incluye.
+        // Si hay filtro pero no hay fecha, se asume que es muy antiguo.
+        if (!dateStr) return !startDate; 
+        
+        const pureDate = dateStr.substring(0, 10);
+        const itemDate = new Date(pureDate + "T12:00:00");
+        return itemDate >= start && itemDate <= end;
+      });
+    };
+
+    try {
+      if (showToast) showToast("info", "Procesando reporte...");
+
+      let questionsList = [];
+      if (selectedSections.preguntas) {
+        const resK = await getKnowledgeBase();
+        questionsList = filterByDate(resK.data || resK);
+      }
+
+      const dataToExport = {
+        visitas: filterByDate(visitasData),
+        usuarios: filterByDate(usuariosData),
+        errores: filterByDate(erroresData),
+        preguntas: questionsList
+      };
+
+      const config = {
+        title: "REPORTE DE USO - AVIS",
+        dateRange: startDate || endDate ? { start: startDate || 'Inicio', end: endDate || 'Hoy' } : null,
+        sections: selectedSections
+      };
+
+      if (format === 'pdf') {
+        exportToPDF_Report(config, dataToExport, `Reporte_AVIS_${new Date().getTime()}.pdf`);
+      } else {
+        // EXCEL MULTI-PESTAÑA: Mucho más limpio y profesional
+        const sheets = [];
+        
+        // Hoja 1: Estadísticas de uso
+        const dateMap = {};
+        const addToMap = (data, key) => {
+          data.forEach(item => {
+            if (!dateMap[item.fecha]) dateMap[item.fecha] = { "Fecha": item.fecha, "Visitas": 0, "Registros": 0, "Errores": 0 };
+            dateMap[item.fecha][key] = item.total;
+          });
+        };
+
+        if (selectedSections.visitas) addToMap(dataToExport.visitas, "Visitas");
+        if (selectedSections.usuarios) addToMap(dataToExport.usuarios, "Registros");
+        if (selectedSections.errores) addToMap(dataToExport.errores, "Errores");
+
+        const statsList = Object.values(dateMap).sort((a,b) => new Date(a.Fecha) - new Date(b.Fecha));
+        if (statsList.length > 0) {
+          sheets.push({ 
+            name: "Estadísticas de Uso", 
+            data: statsList.map(s => ({
+              "FECHA": s.Fecha,
+              "VISITAS": s.Visitas,
+              "REGISTROS": s.Registros,
+              "ERRORES": s.Errores
+            }))
+          });
+        }
+
+        // Hoja 2: Listado de Preguntas
+        if (selectedSections.preguntas && questionsList.length > 0) {
+          const formattedQuestions = questionsList.map(q => ({
+            "Fecha": new Date(q.created_at).toLocaleDateString(),
+            "Pregunta": q.pregunta,
+            "Respuesta": q.respuesta || 'Sin respuesta',
+            "Categoría": q.categoria || 'N/A',
+            "Estado": q.status
+          }));
+          sheets.push({ name: "Listado de Preguntas", data: formattedQuestions });
+        }
+
+        if (sheets.length === 0) {
+          if (showToast) showToast("warning", "No hay datos para las secciones seleccionadas");
+          return;
+        }
+
+        import('../../utils/exportUtils').then(utils => {
+          utils.exportToExcel_MultiSheet(sheets, `Reporte_Admin_AVIS_${new Date().getTime()}.xlsx`);
+        });
+      }
+      if (showToast) showToast("success", "Reporte generado correctamente");
+      setShowReportConfig(false);
+    } catch (err) {
+      console.error("Error al exportar:", err);
+      if (showToast) showToast("error", "Error al generar el archivo. Revisa los filtros.");
+    }
+  };
+
   return (
     <div style={{
       flex:"1 1 0",
@@ -120,6 +234,110 @@ export default function Dashboard() {
       boxSizing:"border-box",
       overflowY:"auto"
     }}>
+
+      {/* Header con Generador de Reportes */}
+      <div style={{
+        gridColumn: "span 2",
+        background: C.darkCard,
+        borderRadius: 12,
+        padding: "20px 24px",
+        border: `1px solid ${C.border}`,
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 8
+      }}>
+        <div>
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.8rem", color: C.white, margin: 0, letterSpacing: ".05em" }}>
+            PANEL DE ESTADISTICAS
+          </h2>
+          <p style={{ fontSize: ".8rem", color: C.gray, margin: 0 }}>Gestión de datos útiles y reportes de uso</p>
+        </div>
+
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button 
+            onClick={() => setShowReportConfig(!showReportConfig)}
+            style={{
+              background: C.greenD, color: C.white, border: 'none',
+              padding: '10px 18px', borderRadius: 8, fontSize: '.85rem',
+              fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+              transition: 'background .2s'
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = C.green}
+            onMouseLeave={e => e.currentTarget.style.background = C.greenD}
+          >
+            <FiFileText size={16}/> GENERAR REPORTE
+          </button>
+        </div>
+      </div>
+
+      {/* Modal / Panel de Configuración de Reporte */}
+      {showReportConfig && (
+        <div style={{
+          gridColumn: "span 2",
+          background: "#161616",
+          borderRadius: 12,
+          padding: 24,
+          border: `1px solid ${C.greenL}`,
+          animation: 'fadeIn .3s ease'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '1.4rem', color: C.greenL, margin: 0 }}>Configuración del Reporte</h3>
+            <button onClick={() => setShowReportConfig(false)} style={{ background: 'transparent', border: 'none', color: C.gray, cursor: 'pointer' }}><FiX size={20}/></button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 30 }}>
+            {/* Fechas */}
+            <div>
+              <p style={{ color: C.white, fontSize: '.8rem', fontWeight: 700, marginBottom: 12, textTransform: 'uppercase' }}>Rango de Fechas</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ color: C.gray, fontSize: '.75rem', width: 40 }}>Desde:</span>
+                  <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ background: '#222', border: `1px solid ${C.border}`, color: '#fff', padding: '6px', borderRadius: 4, outline: 'none', flex: 1 }} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ color: C.gray, fontSize: '.75rem', width: 40 }}>Hasta:</span>
+                  <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ background: '#222', border: `1px solid ${C.border}`, color: '#fff', padding: '6px', borderRadius: 4, outline: 'none', flex: 1 }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Secciones */}
+            <div>
+              <p style={{ color: C.white, fontSize: '.8rem', fontWeight: 700, marginBottom: 12, textTransform: 'uppercase' }}>Incluir Secciones</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {Object.keys(selectedSections).map(key => (
+                  <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, color: C.gray, fontSize: '.85rem', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedSections[key]} 
+                      onChange={() => setSelectedSections({ ...selectedSections, [key]: !selectedSections[key] })}
+                      style={{ accentColor: C.greenL }}
+                    />
+                    {key.charAt(0).toUpperCase() + key.slice(1).replace('preguntas', 'Preguntas/Knowledge')}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Acciones */}
+            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: 10 }}>
+              <button 
+                onClick={() => handleExport('pdf')}
+                style={{ background: C.greenL, color: C.black, border: 'none', padding: '10px', borderRadius: 6, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+              >
+                <FiDownload size={14}/> EXPORTAR PDF
+              </button>
+                <button 
+                onClick={() => handleExport('excel')}
+                style={{ background: 'transparent', border: `1px solid ${C.gray}`, color: C.white, padding: '10px', borderRadius: 6, fontWeight: 600, cursor: 'pointer' }}
+              >
+                EXPORTAR EXCEL
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Visitas */}
       <div style={{background:C.greenBg,borderRadius:10,padding:"16px 18px 14px",display:"flex",flexDirection:"column",border:`1px solid rgba(61,156,58,.18)`,overflow:"hidden",minHeight:0, position: 'relative'}}>
