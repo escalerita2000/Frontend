@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useState, useEffect } from "react"
+import { useOutletContext } from "react-router-dom"
 import { getUsersDetails, createUser, updateUser, deleteUser } from '../../services/apiExtras';
+import { exportToCSV, exportToExcel } from '../../utils/exportUtils';
+import { FiDownload } from 'react-icons/fi';
 
 const C = {
   black:    "#0a0a0a",
@@ -109,18 +111,39 @@ const Users = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <p style={{ margin: 0, fontSize: '14px', color: C.gray }}>{data.length} usuarios registrados</p>
-        <button
-          onClick={() => handleOpenModal()}
-          style={{
-            padding: '10px 18px', borderRadius: '8px', border: 'none',
-            background: C.greenD, color: '#fff', fontSize: '13px', fontWeight: 600,
-            cursor: 'pointer', transition: 'background .2s'
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = C.green}
-          onMouseLeave={e => e.currentTarget.style.background = C.greenD}
-        >
-          + Nuevo usuario
-        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            onClick={() => {
+              const excelData = data.map(u => ({
+                Nombre: u.name,
+                Email: u.email,
+                Rol: u.role,
+                Estado: u.is_active ? 'Activo' : 'Inactivo',
+                Fecha_Registro: u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A'
+              }));
+              import('../../utils/exportUtils').then(u => u.exportToExcel(excelData, 'Usuarios_Registrados.xlsx'));
+            }}
+            style={{
+              padding: '10px 18px', borderRadius: '8px', border: `1px solid ${C.gray}`,
+              background: 'transparent', color: C.gray, fontSize: '13px', fontWeight: 600,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8
+            }}
+          >
+            <FiDownload size={16}/> EXCEL
+          </button>
+          <button
+            onClick={() => handleOpenModal()}
+            style={{
+              padding: '10px 18px', borderRadius: '8px', border: 'none',
+              background: C.greenD, color: '#fff', fontSize: '13px', fontWeight: 600,
+              cursor: 'pointer', transition: 'background .2s'
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = C.green}
+            onMouseLeave={e => e.currentTarget.style.background = C.greenD}
+          >
+            + Nuevo usuario
+          </button>
+        </div>
       </div>
 
       <div style={{ background: '#161616', borderRadius: '12px', border: `1px solid ${C.border}`, overflow: 'hidden' }}>
