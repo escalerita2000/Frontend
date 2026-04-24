@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { useOutletContext } from "react-router-dom"
 import { getUsersDetails, createUser, updateUser, deleteUser } from '../../services/apiExtras';
 import { exportToCSV, exportToExcel } from '../../utils/exportUtils';
-import { FiDownload } from 'react-icons/fi';
+import { FiDownload, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 const C = {
   black:    "#0a0a0a",
@@ -28,18 +28,35 @@ const Users = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({ name: '', email: '', role: 'aprendiz', password: '', is_active: true });
   const [errorMsg, setErrorMsg] = useState('');
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const perPage = 10;
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (page = 1) => {
     try {
       setLoading(true);
-      const response = await getUsersDetails(1, 100);
-      // Laravel paginate returns { data: [...] }
+      const response = await getUsersDetails(page, perPage);
+      
+      // Laravel paginate returns { data: [...], current_page: 1, last_page: 5, total: 50 }
       const usersList = response.data || response;
+      const pagination = response.data ? response : null;
+
       setData(usersList.map(u => ({
         ...u,
         initials: u.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
         color: `hsl(${(u.id * 137.5) % 360}, 50%, 40%)`
       })));
+
+      if (pagination) {
+        setCurrentPage(pagination.current_page);
+        setLastPage(pagination.last_page);
+        setTotalUsers(pagination.total);
+      } else {
+        setTotalUsers(usersList.length);
+      }
     } catch (error) {
       console.error("Error fetching users:", error);
       if (showToast) showToast('error', 'Error al cargar usuarios');
@@ -49,8 +66,8 @@ const Users = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    fetchUsers(currentPage);
+  }, [currentPage]);
 
   const handleOpenModal = (user = null) => {
     if (user) {
@@ -84,7 +101,7 @@ const Users = () => {
         if (showToast) showToast('success', 'Usuario creado correctamente');
       }
       setShowModal(false);
-      fetchUsers();
+      fetchUsers(currentPage);
     } catch (err) {
       setErrorMsg(err.message || "Error al procesar la solicitud");
     }
@@ -95,7 +112,7 @@ const Users = () => {
     try {
       await deleteUser(id);
       if (showToast) showToast('success', 'Usuario eliminado correctamente');
-      fetchUsers();
+      fetchUsers(currentPage);
     } catch (err) {
       if (showToast) showToast('error', err.message || 'Error al eliminar usuario');
     }
@@ -110,7 +127,7 @@ const Users = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <p style={{ margin: 0, fontSize: '14px', color: C.gray }}>{data.length} usuarios registrados</p>
+        <p style={{ margin: 0, fontSize: '14px', color: C.gray }}>{totalUsers} usuarios registrados</p>
         <div style={{ display: 'flex', gap: 10 }}>
           <button
             onClick={() => {
@@ -146,64 +163,168 @@ const Users = () => {
         </div>
       </div>
 
-      <div style={{ background: '#161616', borderRadius: '12px', border: `1px solid ${C.border}`, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-          <thead>
-            <tr style={{ borderBottom: `1px solid ${C.border}` }}>
-              {['Nombre', 'Rol', 'Estado', 'Acciones'].map((h, i) => (
-                <th key={h} style={{
-                  padding: '16px', fontSize: '.7rem', fontWeight: 700,
-                  letterSpacing: '.15em', textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,0.5)', textAlign: i >= 2 ? 'center' : 'left',
-                  background: '#161616'
-                }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((u) => (
-              <tr key={u.id} style={{ borderBottom: `1px solid rgba(61,156,58,0.06)` }}>
-                <td style={{ padding: '12px 16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{
-                      width: '36px', height: '36px', borderRadius: '50%', background: u.color || C.greenBg,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '.75rem', fontWeight: 700, color: '#fff'
-                    }}>
-                      {u.initials || 'U'}
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: '500', color: '#fff', fontSize: '.9rem' }}>{u.name}</div>
-                      <div style={{ fontSize: '.75rem', color: C.gray }}>{u.email}</div>
-                    </div>
-                  </div>
-                </td>
-                <td style={{ padding: '12px 16px' }}>
-                  <span style={{ fontSize: '.85rem', fontWeight: 600, color: roleColor(u.role), textTransform: 'uppercase', letterSpacing: '.05em' }}>
-                    {u.role}
-                  </span>
-                </td>
-                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                  <div style={{
-                    width: '10px', height: '10px', borderRadius: '50%', margin: '0 auto',
-                    background: u.is_active ? C.greenL : C.red,
-                    boxShadow: u.is_active ? `0 0 10px ${C.greenL}` : 'none'
-                  }} title={u.is_active ? "Activo" : "Inactivo"} />
-                </td>
-                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
-                    <button onClick={() => handleOpenModal(u)} style={{ all: 'unset', cursor: 'pointer', color: C.gray }} title="Editar">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                    </button>
-                    <button onClick={() => handleDelete(u.id)} style={{ all: 'unset', cursor: 'pointer', color: C.gray }} title="Eliminar">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                    </button>
-                  </div>
-                </td>
+      <div style={{ 
+        background: '#161616', 
+        borderRadius: '12px', 
+        border: `1px solid ${C.border}`, 
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        <div style={{ maxHeight: '500px', overflowY: 'auto', position: 'relative' }}>
+          {loading && (
+            <div style={{
+              position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', 
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              zIndex: 10, backdropFilter: 'blur(2px)'
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                <div style={{ 
+                  width: '24px', height: '24px', border: '3px solid rgba(255,255,255,0.1)', 
+                  borderTopColor: C.greenL, borderRadius: '50%', animation: 'spin 1s linear infinite' 
+                }} />
+                <p style={{ color: '#fff', fontSize: '14px', fontWeight: 600, margin: 0 }}>Cargando usuarios...</p>
+              </div>
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            </div>
+          )}
+          <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+            <thead>
+              <tr style={{ borderBottom: `1px solid ${C.border}` }}>
+                {['Nombre', 'Rol', 'Estado', 'Acciones'].map((h, i) => (
+                  <th key={h} style={{
+                    padding: '16px', fontSize: '.7rem', fontWeight: 700,
+                    letterSpacing: '.15em', textTransform: 'uppercase',
+                    color: 'rgba(255,255,255,0.5)', textAlign: i >= 2 ? 'center' : 'left',
+                    background: '#161616'
+                  }}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {data.map((u) => (
+                <tr key={u.id} style={{ borderBottom: `1px solid rgba(61,156,58,0.06)` }}>
+                  <td style={{ padding: '12px 16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{
+                        width: '36px', height: '36px', borderRadius: '50%', background: u.color || C.greenBg,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '.75rem', fontWeight: 700, color: '#fff'
+                      }}>
+                        {u.initials || 'U'}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: '500', color: '#fff', fontSize: '.9rem' }}>{u.name}</div>
+                        <div style={{ fontSize: '.75rem', color: C.gray }}>{u.email}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <span style={{ fontSize: '.85rem', fontWeight: 600, color: roleColor(u.role), textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                      {u.role}
+                    </span>
+                  </td>
+                  <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                    <div style={{
+                      width: '10px', height: '10px', borderRadius: '50%', margin: '0 auto',
+                      background: u.is_active ? C.greenL : C.red,
+                      boxShadow: u.is_active ? `0 0 10px ${C.greenL}` : 'none'
+                    }} title={u.is_active ? "Activo" : "Inactivo"} />
+                  </td>
+                  <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+                      <button onClick={() => handleOpenModal(u)} style={{ all: 'unset', cursor: 'pointer', color: C.gray }} title="Editar">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      </button>
+                      <button onClick={() => handleDelete(u.id)} style={{ all: 'unset', cursor: 'pointer', color: C.gray }} title="Eliminar">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination Controls */}
+        {lastPage > 1 && (
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            gap: '10px', 
+            padding: '16px',
+            borderTop: `1px solid ${C.border}`,
+            background: '#161616'
+          }}>
+            <button 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              style={{
+                all: 'unset',
+                cursor: currentPage === 1 ? 'default' : 'pointer',
+                color: currentPage === 1 ? 'rgba(255,255,255,0.2)' : C.gray,
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px',
+                borderRadius: '6px',
+                transition: 'background .2s',
+                background: 'transparent'
+              }}
+              onMouseEnter={e => currentPage !== 1 && (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <FiChevronLeft size={20} />
+            </button>
+            
+            <div style={{ display: 'flex', gap: '5px' }}>
+              {Array.from({ length: lastPage }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  style={{
+                    all: 'unset',
+                    cursor: 'pointer',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    background: currentPage === page ? C.greenD : 'transparent',
+                    color: currentPage === page ? '#fff' : C.gray,
+                    transition: 'all .2s'
+                  }}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button 
+              disabled={currentPage === lastPage}
+              onClick={() => setCurrentPage(prev => Math.min(lastPage, prev + 1))}
+              style={{
+                all: 'unset',
+                cursor: currentPage === lastPage ? 'default' : 'pointer',
+                color: currentPage === lastPage ? 'rgba(255,255,255,0.2)' : C.gray,
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px',
+                borderRadius: '6px',
+                transition: 'background .2s',
+                background: 'transparent'
+              }}
+              onMouseEnter={e => currentPage !== lastPage && (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <FiChevronRight size={20} />
+            </button>
+          </div>
+        )}
       </div>
 
       {showModal && (
