@@ -29,7 +29,7 @@ import ChatHistory from "../pages/Chatbot/ChatHistory"
 import Dashboard     from "../pages/Dashboard/Dashboard"
 import Statistics    from "../pages/Dashboard/Statistics"
 import Configuration from "../pages/Dashboard/Configuration"
-import { MyAccountPage } from "../layouts/DashboardLayout"
+import Account from "../pages/Dashboard/Account"
 import DataManager   from "../pages/Database/DataManager"
 import QuestionsPanel from "../pages/Dashboard/QuestionsPanel"
 import PasswordGenerator from "../pages/Dashboard/PasswordGenerator"
@@ -78,7 +78,7 @@ return (
             <Route path="/statistics"    element={<Statistics />} />
             <Route path="/questions"     element={<QuestionsPanel />} />
             <Route path="/configuration" element={<Configuration />} />
-            <Route path="/account" element={<MyAccountPage />} />
+            <Route path="/account"       element={<Account />} />
             <Route path="/database"      element={<DataManager />} />
             <Route path="/password-generator" element={<PasswordGenerator />} />
             <Route path="/errors"        element={<div style={{padding:40, color:'#888'}}>Próximamente... Panel de Errores</div>} />

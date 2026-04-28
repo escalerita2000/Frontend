@@ -89,3 +89,28 @@ export const getAuthUser = async () => {
 
     return result;
 };
+
+// 🔄 Actualizar perfil del usuario
+export const updateProfile = async (data) => {
+    const token = localStorage.getItem("token");
+
+    if (!token) throw new Error("No autenticado");
+
+    const response = await fetch(`${API_URL}/user`, {
+        method: "PUT",
+        headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        },
+        body: JSON.stringify(data)
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+        throw new Error(result.message || "Error al actualizar perfil");
+    }
+
+    return result;
+};

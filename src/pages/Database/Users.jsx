@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react"
 import { useOutletContext } from "react-router-dom"
-import { getUsersDetails, createUser, updateUser, deleteUser } from '../../services/apiExtras'
-import { FiDownload } from 'react-icons/fi'
+import { getUsersDetails, createUser, updateUser, deleteUser } from '../../services/apiExtras';
+import { exportToCSV, exportToExcel } from '../../utils/exportUtils';
+import { FiDownload, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 const C = {
   black:    "#0a0a0a",
@@ -19,30 +20,43 @@ const C = {
   red:      "#e05555",
 }
 
-const PER_PAGE = 10   // usuarios por página
-
 const Users = () => {
-  const { showToast } = useOutletContext()
-  const [data,        setData]        = useState([])
-  const [loading,     setLoading]     = useState(true)
-  const [page,        setPage]        = useState(1)
-  const [showModal,   setShowModal]   = useState(false)
-  const [editingUser, setEditingUser] = useState(null)
-  const [formData,    setFormData]    = useState({ name:'', email:'', role:'aprendiz', password:'', is_active:true })
-  const [errorMsg,    setErrorMsg]    = useState('')
+  const { showToast } = useOutletContext();
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [formData, setFormData] = useState({ name: '', email: '', role: 'aprendiz', password: '', is_active: true });
+  const [errorMsg, setErrorMsg] = useState('');
+  
+  // Pagination State (Server-side)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const perPage = 10;
 
-  /* ── Carga usuarios ── */
-  const fetchUsers = async () => {
+  const fetchUsers = async (page = 1) => {
     try {
-      setLoading(true)
-      const response = await getUsersDetails(1, 200)   // trae todos, paginamos en cliente
-      const usersList = response.data || response
+      setLoading(true);
+      const response = await getUsersDetails(page, perPage);
+      
+      // Laravel paginate returns { data: [...], current_page: 1, last_page: 5, total: 50 }
+      const usersList = response.data || response;
+      const pagination = response.data ? response : null;
+
       setData(usersList.map(u => ({
         ...u,
         initials: u.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
-        color: `hsl(${(u.id * 137.5) % 360}, 50%, 40%)`,
-      })))
-      setPage(1)   // volver a la primera página al recargar
+        color: `hsl(${(u.id * 137.5) % 360}, 50%, 40%)`
+      })));
+
+      if (pagination) {
+        setCurrentPage(pagination.current_page);
+        setLastPage(pagination.last_page);
+        setTotalUsers(pagination.total);
+      } else {
+        setTotalUsers(usersList.length);
+      }
     } catch (error) {
       console.error("Error fetching users:", error)
       if (showToast) showToast('error', 'Error al cargar usuarios')
@@ -51,26 +65,9 @@ const Users = () => {
     }
   }
 
-  useEffect(() => { fetchUsers() }, [])
-
-  /* ── Paginación en cliente ── */
-  const totalPages  = Math.max(1, Math.ceil(data.length / PER_PAGE))
-  const pageData    = data.slice((page - 1) * PER_PAGE, page * PER_PAGE)
-
-  const goPage = (n) => setPage(Math.max(1, Math.min(totalPages, n)))
-
-  /* ── Genera array de páginas a mostrar (máx 5 botones) ── */
-  const pageNumbers = (() => {
-    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1)
-    const half  = 2
-    let start   = Math.max(1, page - half)
-    let end     = Math.min(totalPages, page + half)
-    if (end - start < 4) {
-      if (start === 1) end   = Math.min(5, totalPages)
-      else             start = Math.max(1, end - 4)
-    }
-    return Array.from({ length: end - start + 1 }, (_, i) => start + i)
-  })()
+  useEffect(() => {
+    fetchUsers(currentPage);
+  }, [currentPage]);
 
   /* ── Modal ── */
   const handleOpenModal = (user = null) => {
@@ -98,8 +95,8 @@ const Users = () => {
         await createUser(formData)
         if (showToast) showToast('success', 'Usuario creado correctamente')
       }
-      setShowModal(false)
-      fetchUsers()
+      setShowModal(false);
+      fetchUsers(currentPage);
     } catch (err) {
       setErrorMsg(err.message || "Error al procesar la solicitud")
     }
@@ -108,9 +105,9 @@ const Users = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("¿Está seguro de eliminar este usuario?")) return
     try {
-      await deleteUser(id)
-      if (showToast) showToast('success', 'Usuario eliminado correctamente')
-      fetchUsers()
+      await deleteUser(id);
+      if (showToast) showToast('success', 'Usuario eliminado correctamente');
+      fetchUsers(currentPage);
     } catch (err) {
       if (showToast) showToast('error', err.message || 'Error al eliminar usuario')
     }
@@ -125,13 +122,13 @@ const Users = () => {
     letterSpacing: '.15em', textTransform: 'uppercase',
     color: 'rgba(255,255,255,0.5)', background: '#161616',
     borderBottom: `1px solid ${C.border}`,
-    position: 'sticky', top: 0, zIndex: 1,   // ← thead fijo al hacer scroll
+    position: 'sticky', top: 0, zIndex: 1,
   }
 
   const btnPage = (n, label, disabled) => (
     <button
       key={label ?? n}
-      onClick={() => !disabled && goPage(n)}
+      onClick={() => !disabled && setCurrentPage(n)}
       disabled={disabled}
       style={{
         all: 'unset',
@@ -139,10 +136,10 @@ const Users = () => {
         fontFamily: "'Outfit', sans-serif",
         fontSize: '.8rem', fontWeight: 600,
         letterSpacing: '.04em',
-        color: page === n ? C.white : C.gray,
+        color: currentPage === n ? C.white : C.gray,
         padding: '6px 10px', borderRadius: 5,
-        background: page === n ? C.greenD : 'none',
-        border: page === n ? `1px solid ${C.green}` : '1px solid transparent',
+        background: currentPage === n ? C.greenD : 'none',
+        border: currentPage === n ? `1px solid ${C.green}` : '1px solid transparent',
         opacity: disabled ? .4 : 1,
         minWidth: 32, textAlign: 'center',
         transition: 'all .15s',
@@ -152,19 +149,7 @@ const Users = () => {
     </button>
   )
 
-  if (loading && data.length === 0) {
-    return <p style={{ color: C.gray, fontSize: '14px', textAlign: 'center', padding: '40px' }}>Cargando usuarios...</p>
-  }
-
   return (
-    /*
-      ─────────────────────────────────────────────────
-      Layout: flex column con 3 zonas
-        1. Barra superior  (flexShrink:0 — no se comprime)
-        2. Tabla           (flex:1 — crece y hace scroll)
-        3. Paginación      (flexShrink:0 — siempre visible)
-      ─────────────────────────────────────────────────
-    */
     <div style={{
       display: 'flex',
       flexDirection: 'column',
@@ -185,10 +170,10 @@ const Users = () => {
         gap: 10,
       }}>
         <p style={{ margin: 0, fontSize: '14px', color: C.gray }}>
-          {data.length} usuarios registrados
-          {totalPages > 1 && (
+          {totalUsers} usuarios registrados
+          {lastPage > 1 && (
             <span style={{ marginLeft: 8, color: C.gray, opacity: .6 }}>
-              — Página {page} de {totalPages}
+              — Página {currentPage} de {lastPage}
             </span>
           )}
         </p>
@@ -232,11 +217,27 @@ const Users = () => {
         background: '#161616',
         borderRadius: '12px',
         border: `1px solid ${C.border}`,
-        // Scroll SOLO aquí, no en el contenedor padre
         overflowY: 'auto',
         overflowX: 'auto',
         WebkitOverflowScrolling: 'touch',
+        position: 'relative'
       }}>
+        {loading && (
+          <div style={{
+            position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', 
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 10, backdropFilter: 'blur(2px)'
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+              <div style={{ 
+                width: '24px', height: '24px', border: '3px solid rgba(255,255,255,0.1)', 
+                borderTopColor: C.greenL, borderRadius: '50%', animation: 'spin 1s linear infinite' 
+              }} />
+              <p style={{ color: '#fff', fontSize: '14px', fontWeight: 600, margin: 0 }}>Cargando...</p>
+            </div>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </div>
+        )}
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 480 }}>
           <thead>
             <tr>
@@ -246,13 +247,13 @@ const Users = () => {
             </tr>
           </thead>
           <tbody>
-            {pageData.length === 0 ? (
+            {data.length === 0 && !loading ? (
               <tr>
                 <td colSpan={4} style={{ padding: '40px', textAlign: 'center', color: C.gray, fontSize: '.88rem' }}>
-                  No hay usuarios en esta página.
+                  No hay usuarios registrados.
                 </td>
               </tr>
-            ) : pageData.map(u => (
+            ) : data.map(u => (
               <tr key={u.id} style={{ borderBottom: `1px solid rgba(61,156,58,0.06)` }}>
 
                 {/* Nombre */}
@@ -330,10 +331,10 @@ const Users = () => {
         </table>
       </div>
 
-      {/* ── 3. Paginación — SIEMPRE visible, nunca se comprime ── */}
-      {totalPages > 1 && (
+      {/* ── 3. Paginación — SIEMPRE visible ── */}
+      {lastPage > 1 && (
         <div style={{
-          flexShrink: 0,           // ← clave: no se comprime nunca
+          flexShrink: 0,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -341,32 +342,20 @@ const Users = () => {
           padding: '12px 0 10px',
           flexWrap: 'wrap',
         }}>
-          {/* Anterior */}
-          {btnPage(page - 1, '←', page === 1)}
+          {btnPage(currentPage - 1, <FiChevronLeft size={16} />, currentPage === 1)}
+          
+          {Array.from({ length: lastPage }, (_, i) => i + 1).map(n => {
+            // Lógica simple de páginas (mostrar 5 máximo alrededor de la actual)
+            if (lastPage > 7) {
+              if (n > 1 && n < lastPage && (n < currentPage - 2 || n > currentPage + 2)) {
+                if (n === currentPage - 3 || n === currentPage + 3) return <span key={n} style={{color: C.gray}}>...</span>
+                return null
+              }
+            }
+            return btnPage(n, n, false)
+          })}
 
-          {/* Primera página si no está en el rango */}
-          {pageNumbers[0] > 1 && (
-            <>
-              {btnPage(1, 1, false)}
-              {pageNumbers[0] > 2 && <span style={{ color: C.gray, padding: '0 4px' }}>…</span>}
-            </>
-          )}
-
-          {/* Páginas del rango */}
-          {pageNumbers.map(n => btnPage(n, n, false))}
-
-          {/* Última página si no está en el rango */}
-          {pageNumbers[pageNumbers.length - 1] < totalPages && (
-            <>
-              {pageNumbers[pageNumbers.length - 1] < totalPages - 1 && (
-                <span style={{ color: C.gray, padding: '0 4px' }}>…</span>
-              )}
-              {btnPage(totalPages, totalPages, false)}
-            </>
-          )}
-
-          {/* Siguiente */}
-          {btnPage(page + 1, '→', page === totalPages)}
+          {btnPage(currentPage + 1, <FiChevronRight size={16} />, currentPage === lastPage)}
         </div>
       )}
 

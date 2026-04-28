@@ -39,6 +39,29 @@ const StatusBadge = ({ estado }) => {
   )
 }
 
+// Componente para resaltar texto
+const HighlightText = ({ text, highlight }) => {
+  if (!highlight.trim()) return <span>{text}</span>
+  
+  const words = highlight.split(' ').filter(w => w.trim() !== '')
+  const regex = new RegExp(`(${words.join('|')})`, 'gi')
+  const parts = text.split(regex)
+  
+  return (
+    <span>
+      {parts.map((part, i) => 
+        regex.test(part) ? (
+          <mark key={i} style={{ background: "rgba(82,196,79,0.3)", color: "#fff", borderRadius: "2px", padding: "0 2px" }}>
+            {part}
+          </mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </span>
+  )
+}
+
 // ─────────────────────────────────────────────
 // DASHBOARD
 // ─────────────────────────────────────────────
@@ -89,7 +112,7 @@ const SectionDashboard = ({ stats }) => (
 // ─────────────────────────────────────────────
 // TABLA DE PREGUNTAS  (layout de 3 zonas en flex-column)
 // ─────────────────────────────────────────────
-const SectionQuestionsTable = ({ title, questions, onRefresh, readOnly = false }) => {
+const SectionQuestionsTable = ({ title, questions, onRefresh, search = "", readOnly = false }) => {
   const { showToast } = useOutletContext()
   const [answeringId, setAnsweringId]   = useState(null)
   const [responseText, setResponseText] = useState("")
@@ -156,7 +179,7 @@ const SectionQuestionsTable = ({ title, questions, onRefresh, readOnly = false }
           <button
             onClick={() => {
               const excelData = questions.map(q => ({
-                Pregunta:  q.pregunta,
+                Pregunta:  q.pregunta?.replace(/\s*\([^)]*\)/g, ""),
                 Respuesta: q.respuesta || 'Sin respuesta',
                 Categoría: q.categoria || 'N/A',
                 Fecha:     new Date(q.created_at).toLocaleDateString(),
@@ -176,7 +199,8 @@ const SectionQuestionsTable = ({ title, questions, onRefresh, readOnly = false }
           <button
             onClick={() => {
               const config = { title: `REPORTE: ${title.toUpperCase()}`, sections: { preguntas: true } }
-              exportToPDF_Report(config, { preguntas: questions }, `Reporte_${title.replace(/\s+/g, '_')}.pdf`)
+              const cleanedQuestions = questions.map(q => ({ ...q, pregunta: q.pregunta?.replace(/\s*\([^)]*\)/g, "") }))
+              exportToPDF_Report(config, { preguntas: cleanedQuestions }, `Reporte_${title.replace(/\s+/g, '_')}.pdf`)
             }}
             style={{
               background: 'transparent', border: `1px solid ${C.greenL}`,
@@ -228,17 +252,22 @@ const SectionQuestionsTable = ({ title, questions, onRefresh, readOnly = false }
               >
                 {/* Pregunta + respuesta */}
                 <td style={tdStyle}>
-                  <div style={{ wordBreak: "break-word" }}>{q.pregunta}</div>
+                  <div style={{ wordBreak: "break-word" }}>
+                    <HighlightText 
+                      text={q.pregunta?.replace(/\s*\([^)]*\)/g, "")} 
+                      highlight={search} 
+                    />
+                  </div>
                   {q.respuesta && (
                     <div style={{ fontSize: '.8rem', color: C.greenL, marginTop: 4, wordBreak: "break-word" }}>
-                      R: {q.respuesta}
+                      R: <HighlightText text={q.respuesta} highlight={search} />
                     </div>
                   )}
                 </td>
 
                 {/* Categoría */}
                 <td style={{ ...tdStyle, color: C.gray, fontSize: ".8rem", wordBreak: "break-word" }}>
-                  {q.categoria || 'N/A'}
+                  <HighlightText text={q.categoria || 'N/A'} highlight={search} />
                 </td>
 
                 {/* Fecha */}
@@ -353,6 +382,7 @@ export default function QuestionsPanel({ readOnly = false }) {
 
   const navItems = [
     { id: "dashboard",     label: "Dashboard",     icon: "📊" },
+    { id: "global",        label: "Búsq. Global",  icon: "🔍" },
     { id: "sin-respuesta", label: "Sin Respuesta",  icon: "🔴" },
     { id: "respondidas",   label: "Respondidas",    icon: "✅" },
     { id: "en-revision",   label: "En Revisión",    icon: "⏳" },
@@ -396,6 +426,7 @@ export default function QuestionsPanel({ readOnly = false }) {
       fetchStats()
     } else {
       const statusMap = {
+        "global":        "",
         "sin-respuesta": "pendiente",
         "respondidas":   "respondida",
         "en-revision":   "en_revision",
@@ -403,6 +434,13 @@ export default function QuestionsPanel({ readOnly = false }) {
       fetchData(statusMap[section], debouncedSearch)
     }
   }, [section, debouncedSearch])
+
+  const sectionTitles = {
+    "global":        "Búsqueda Global de Conocimiento",
+    "sin-respuesta": "Preguntas sin respuesta",
+    "respondidas":   "Preguntas respondidas",
+    "en-revision":   "Preguntas en revisión",
+  }
 
   return (
     // Contenedor raíz: flex-row, ocupa todo el espacio que le da el Outlet
@@ -468,27 +506,20 @@ export default function QuestionsPanel({ readOnly = false }) {
 
         {/* Secciones — cada una tiene flex:"1 1 0" para llenar el espacio */}
         {!loading && section === "dashboard"     && <SectionDashboard stats={stats}/>}
-        {!loading && section === "sin-respuesta" && (
+        {!loading && section !== "dashboard" && (
           <SectionQuestionsTable
-            title="Preguntas sin respuesta"
+            title={sectionTitles[section]}
             questions={questions}
-            onRefresh={() => fetchData("pendiente", debouncedSearch)}
-            readOnly={readOnly}
-          />
-        )}
-        {!loading && section === "respondidas"   && (
-          <SectionQuestionsTable
-            title="Preguntas respondidas"
-            questions={questions}
-            onRefresh={() => fetchData("respondida", debouncedSearch)}
-            readOnly={readOnly}
-          />
-        )}
-        {!loading && section === "en-revision"   && (
-          <SectionQuestionsTable
-            title="Preguntas en revisión"
-            questions={questions}
-            onRefresh={() => fetchData("en_revision", debouncedSearch)}
+            search={debouncedSearch}
+            onRefresh={() => {
+              const statusMap = {
+                "global":        "",
+                "sin-respuesta": "pendiente",
+                "respondidas":   "respondida",
+                "en-revision":   "en_revision",
+              }
+              fetchData(statusMap[section], debouncedSearch)
+            }}
             readOnly={readOnly}
           />
         )}

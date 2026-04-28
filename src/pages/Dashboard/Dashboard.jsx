@@ -150,7 +150,7 @@ export default function Dashboard() {
         visitas: filterByDate(visitasData),
         usuarios: filterByDate(usuariosData),
         errores: filterByDate(erroresData),
-        preguntas: questionsList
+        preguntas: questionsList.map(q => ({ ...q, pregunta: q.pregunta?.replace(/\s*\([^)]*\)/g, "") }))
       };
 
       const config = {
@@ -195,7 +195,7 @@ export default function Dashboard() {
         if (selectedSections.preguntas && questionsList.length > 0) {
           const formattedQuestions = questionsList.map(q => ({
             "Fecha": new Date(q.created_at).toLocaleDateString(),
-            "Pregunta": q.pregunta,
+            "Pregunta": q.pregunta?.replace(/\s*\([^)]*\)/g, ""),
             "Respuesta": q.respuesta || 'Sin respuesta',
             "Categoría": q.categoria || 'N/A',
             "Estado": q.status
