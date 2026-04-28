@@ -2583,3 +2583,853 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+  ═══════════════════════════════════════════════════════
+  AVIS — RESPONSIVE.CSS
+  Media queries para: Home, Chatbot y AdminPanel
+  
+  Breakpoints:
+    Mobile S : 320px
+    Mobile   : hasta 480px
+    Mobile L : hasta 600px
+    Tablet   : 601px – 900px
+    Desktop S: 901px – 1200px
+    Desktop  : 1201px+
+  ═══════════════════════════════════════════════════════
+*/
+
+/* ═══════════════════════════════════════════════════════
+   HOME PAGE
+   Afecta: nav, .hero, .hero-logo, .hero-title,
+           .hero-sub, .hero-cta, footer
+═══════════════════════════════════════════════════════ */
+
+/* ── Tablet (601px – 900px) ── */
+@media (max-width: 900px) {
+  nav {
+    padding: 0 4%;
+  }
+
+  .nav-links {
+    gap: 20px;
+  }
+
+  .nav-links a {
+    font-size: .72rem;
+  }
+
+  .hero-logo svg {
+    width: 260px;
+    height: 260px;
+  }
+
+  .hero-logo {
+    margin-top: -100px;
+    margin-bottom: 36px;
+  }
+
+  .hero-title {
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+  }
+
+  .hero-sub {
+    font-size: .82rem;
+    letter-spacing: .16em;
+  }
+
+  footer {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    padding: 20px 5%;
+  }
+
+  .footer-copy {
+    order: 3;
+  }
+
+  .social-row {
+    order: 2;
+  }
+}
+
+/* ── Mobile L (hasta 600px) ── */
+@media (max-width: 600px) {
+  /* NAV */
+  nav {
+    padding: 0 16px;
+    height: 56px;
+    flex: 0 0 56px;
+    justify-content: space-between;
+  }
+
+  /* Oculta links de texto en móvil, deja solo logo y CTA */
+  .nav-links {
+    gap: 12px;
+  }
+
+  .nav-links li:not(:last-child) {
+    display: none;
+  }
+
+  .nav-logo-text .tagline {
+    display: none;
+  }
+
+  .nav-logo svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .nav-logo-text .brand {
+    font-size: 1.3rem;
+  }
+
+  .btn-nav {
+    padding: 8px 14px;
+    font-size: .72rem !important;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 0 16px;
+  }
+
+  .hero-logo {
+    margin-top: -80px;
+    margin-bottom: 24px;
+  }
+
+  .hero-logo svg {
+    width: 200px;
+    height: 200px;
+  }
+
+  .hero-title {
+    font-size: clamp(2rem, 9vw, 3rem);
+    line-height: 1;
+  }
+
+  .hero-sub {
+    font-size: .72rem;
+    letter-spacing: .14em;
+    margin-top: 10px;
+  }
+
+  .hero-cta {
+    margin-top: 24px;
+  }
+
+  .btn-cta {
+    padding: 14px 36px;
+    font-size: .8rem;
+    letter-spacing: .14em;
+  }
+
+  /* FOOTER */
+  footer {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .footer-brand .footer-tagline {
+    font-size: 1.1rem;
+  }
+
+  .footer-copy {
+    font-size: .6rem;
+  }
+
+  .social-link {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+/* ── Mobile S (hasta 380px) ── */
+@media (max-width: 380px) {
+  .hero-logo svg {
+    width: 160px;
+    height: 160px;
+  }
+
+  .hero-logo {
+    margin-top: -60px;
+    margin-bottom: 18px;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .btn-cta {
+    padding: 12px 28px;
+    font-size: .75rem;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   CHATBOT
+   Afecta: .app-root, .sidebar, .chat-main,
+           .welcome-screen, .input-card, .bubble-wrap,
+           .messages-area, .input-bar-wrap
+═══════════════════════════════════════════════════════ */
+
+/* ── Tablet (601px – 900px) ── */
+@media (max-width: 900px) {
+  :root {
+    --sidebar-w: 180px;
+  }
+
+  .welcome-title {
+    font-size: 28px;
+  }
+
+  .brand-avis {
+    font-size: 40px;
+  }
+
+  .input-card {
+    max-width: 100%;
+  }
+
+  .bubble-wrap {
+    max-width: 80%;
+  }
+
+  .messages-area {
+    padding: 16px 14px;
+  }
+}
+
+/* ── Mobile L (hasta 600px) ── */
+@media (max-width: 600px) {
+  /* Sidebar se convierte en overlay que se cierra */
+  .sidebar {
+    width: 80vw;
+    max-width: 280px;
+    z-index: 300;
+  }
+
+  /* El main NUNCA se desplaza en móvil — el sidebar va encima */
+  .chat-main.sidebar-open {
+    margin-left: 0;
+  }
+
+  /* Overlay oscuro detrás del sidebar cuando está abierto */
+  .sidebar.open::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    left: 80vw;
+    background: rgba(0,0,0,.45);
+    z-index: -1;
+  }
+
+  /* Welcome screen */
+  .welcome-screen {
+    padding: 24px 16px;
+    justify-content: flex-start;
+    padding-top: 60px;
+  }
+
+  .welcome-logo-icon {
+    width: 52px;
+    height: 52px;
+  }
+
+  .brand-avis {
+    font-size: 32px;
+  }
+
+  .brand-tagline {
+    font-size: 10px;
+    letter-spacing: .08em;
+  }
+
+  .welcome-title {
+    font-size: 22px;
+    margin: 12px 0 4px;
+  }
+
+  .welcome-subtitle {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  /* Input card en welcome */
+  .input-card {
+    border-radius: 14px;
+    padding: 12px 12px 8px;
+  }
+
+  .chat-input {
+    font-size: .78rem;
+  }
+
+  /* Mensajes */
+  .messages-area {
+    padding: 12px 10px;
+    gap: 12px;
+  }
+
+  .bubble-wrap {
+    max-width: 88%;
+  }
+
+  .bubble {
+    font-size: 13px;
+    padding: 10px 13px;
+  }
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  .avatar svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Header del chat */
+  .chat-header {
+    padding: 12px 16px 10px;
+  }
+
+  .chat-header-title {
+    font-size: 13px;
+  }
+
+  /* Input bar inferior */
+  .input-bar-wrap {
+    padding: 10px 12px 14px;
+  }
+
+  /* Sugerencias */
+  .suggestions-btn {
+    font-size: 10px;
+    padding: 6px 12px;
+  }
+
+  .suggestion-item {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  /* Toggle del sidebar */
+  .sidebar-toggle {
+    top: 12px;
+    left: 12px;
+  }
+}
+
+/* ── Mobile S (hasta 380px) ── */
+@media (max-width: 380px) {
+  .brand-avis {
+    font-size: 26px;
+  }
+
+  .welcome-title {
+    font-size: 18px;
+  }
+
+  .bubble-wrap {
+    max-width: 92%;
+  }
+
+  .sidebar {
+    width: 88vw;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   ADMIN PANEL (DashboardLayout + secciones)
+   Afecta: nav, aside derecho, .dash-home,
+           SectionMyAccount, tablas, QuestionsPanel
+═══════════════════════════════════════════════════════ */
+
+/*
+  El AdminPanel usa estilos inline en JSX.
+  Estas clases ayudan a los componentes hijos que
+  sí usan clases CSS (Dashboard.css, QuestionsPanel).
+  Para el layout principal se añaden variables
+  que los estilos inline pueden aprovechar si
+  los conviertes, pero principalmente estos
+  media queries atacan los componentes hijo.
+*/
+
+/* ── Tablet (601px – 900px) ── */
+@media (max-width: 900px) {
+  /* Dashboard grid: de 2x2 a 1 columna */
+  .dash-home__grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 10px;
+  }
+
+  .dash-card__value {
+    font-size: 22px;
+  }
+
+  /* QuestionsPanel sub-sidebar */
+  aside[style*="flex: 0 0 160px"],
+  aside[style*="flex:0 0 160px"] {
+    flex: 0 0 120px !important;
+    width: 120px !important;
+  }
+}
+
+/* ── Mobile L (hasta 600px) ── */
+@media (max-width: 600px) {
+  /* Dashboard grid: 1 columna */
+  .dash-home__grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    gap: 10px;
+  }
+
+  .dash-home {
+    padding: 10px;
+    overflow-y: auto;
+  }
+
+  .dash-card {
+    padding: 14px;
+    min-height: 140px;
+  }
+
+  .dash-card__value {
+    font-size: 20px;
+  }
+
+  .dash-card__label {
+    font-size: 8px;
+  }
+
+  /* QuestionsPanel: sidebar arriba como tabs */
+  /* El aside lateral del QuestionsPanel se convierte en barra horizontal */
+  .questions-sidebar-wrap {
+    flex-direction: column !important;
+  }
+
+  /* Tabla de usuarios: scroll horizontal */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  /* MyAccount card: padding reducido */
+  /* (estilos inline, esta regla afecta si se migra a clases) */
+  .my-account-card {
+    padding: 24px 16px 20px !important;
+  }
+}
+
+/* ── Mobile S (hasta 380px) ── */
+@media (max-width: 380px) {
+  .dash-card {
+    min-height: 120px;
+  }
+
+  .dash-card__value {
+    font-size: 18px;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   ADMIN PANEL — LAYOUT PRINCIPAL (inline styles fix)
+   
+   Como el AdminPanel usa estilos 100% inline en JSX,
+   aquí usamos clases de utilidad que puedes agregar
+   a los elementos clave para hacerlos responsive.
+   
+   Alternativa recomendada: agregar estas clases
+   directamente en el JSX como className junto al style.
+═══════════════════════════════════════════════════════ */
+
+/* Clase helper para el aside derecho del admin */
+.admin-right-panel {
+  flex: 0 0 200px !important;
+  width: 200px !important;
+}
+
+@media (max-width: 900px) {
+  .admin-right-panel {
+    flex: 0 0 160px !important;
+    width: 160px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  /* En móvil el panel derecho se convierte en barra inferior */
+  .admin-right-panel {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    flex: 0 0 56px !important;
+    height: 56px !important;
+    flex-direction: row !important;
+    padding: 0 !important;
+    border-left: none !important;
+    border-top: 1px solid rgba(61,156,58,0.2) !important;
+    z-index: 100 !important;
+    overflow: hidden !important;
+    gap: 0 !important;
+  }
+
+  /* El contenido principal necesita padding inferior para no quedar
+     tapado por la barra de navegación fija */
+  .admin-main-content {
+    padding-bottom: 56px !important;
+  }
+
+  /* Nav top en móvil */
+  .admin-nav {
+    padding: 0 12px !important;
+  }
+}
+
+/* ── Clase helper para botones del panel derecho en móvil ── */
+@media (max-width: 600px) {
+  /* Los PanelBtn se ponen en fila horizontal */
+  .admin-right-panel button {
+    flex-direction: column !important;
+    gap: 3px !important;
+    padding: 8px 4px !important;
+    font-size: .52rem !important;
+    letter-spacing: .08em !important;
+    flex: 1 !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  .admin-right-panel button span {
+    width: 18px !important;
+    height: 18px !important;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   QUESTIONS PANEL (QuestionsPanel.jsx)
+   Usa clases CSS propias
+═══════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  /* Sub-sidebar del QuestionsPanel más estrecho */
+  aside[style*="flex: 0 0 160px"] {
+    flex: 0 0 130px !important;
+    width: 130px !important;
+  }
+
+  /* Tabla de preguntas */
+  .questions-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Padding de secciones */
+  div[style*="padding: 40px"] {
+    padding: 24px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  /* QuestionsPanel layout: sidebar arriba, contenido abajo */
+  div[style*="display: flex"][style*="flex: 1"] > aside {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    height: auto !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(61,156,58,0.2) !important;
+    padding: 8px 0 !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+  }
+
+  /* Botones del sub-sidebar en fila */
+  div[style*="display: flex"][style*="flex: 1"] > aside button {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    border-left: none !important;
+    border-bottom: 3px solid transparent !important;
+    padding: 8px 16px !important;
+    font-size: .75rem !important;
+  }
+
+  /* Padding reducido en móvil */
+  div[style*="padding: 40px"] {
+    padding: 16px !important;
+  }
+
+  /* Stats cards: 2 columnas en móvil */
+  div[style*="gridTemplateColumns: repeat(auto-fill"] {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Tabla responsive: scroll horizontal */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ocultar columna categoría en móvil para ahorrar espacio */
+  th:nth-child(2),
+  td:nth-child(2) {
+    display: none;
+  }
+
+  /* Botones de descarga más pequeños */
+  div[style*="display: flex"][style*="gap: 10"] button[style*="border"] {
+    font-size: .65rem !important;
+    padding: 5px 8px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  /* Stats: 1 columna en móvil muy pequeño */
+  div[style*="gridTemplateColumns: repeat(auto-fill"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   MODAL EDITAR USUARIO (EditModal)
+═══════════════════════════════════════════════════════ */
+
+@media (max-width: 600px) {
+  /* El modal ocupa todo el ancho en móvil */
+  div[style*="position:\"fixed\""][style*="maxWidth:480"] {
+    max-width: 95vw !important;
+    padding: 20px 16px 18px !important;
+    top: 50% !important;
+    width: 95vw !important;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   UTILIDADES GENERALES RESPONSIVE
+═══════════════════════════════════════════════════════ */
+
+/* Scroll suave en toda la app */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Evita zoom no deseado en inputs en iOS */
+@media (max-width: 600px) {
+  input, textarea, select {
+    font-size: 16px !important; /* iOS no hace zoom con 16px+ */
+  }
+
+  /* Excepción: inputs del admin panel con fuente decorativa pequeña */
+  .input-group input {
+    font-size: 14px !important;
+  }
+}
+
+/* Imágenes siempre responsivas */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Texto que no desborda */
+p, span, h1, h2, h3, h4 {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+
+/*
+  ═══════════════════════════════════════════════════════
+  AVIS — ADMIN TABLE FIX
+  admin-table-fix.css
+  
+  Arregla:
+    1. Tabla de usuarios con scroll horizontal en móvil
+    2. Paginación siempre visible (no queda tapada)
+    3. Contenedor de la sección Configuration scrolleable
+  
+  Importa este archivo en tu Configuration.jsx o en
+  el CSS global después de los estilos principales.
+  ═══════════════════════════════════════════════════════
+*/
+
+/* ══════════════════════════════════════
+   SECTION CONFIGURATION — contenedor
+   El div que envuelve la tabla debe poder
+   hacer scroll vertical sin que la paginación
+   quede fuera de la pantalla.
+══════════════════════════════════════ */
+
+/*
+  Si el SectionConfiguration tiene un div exterior
+  con flex:"1 1 0" y overflow:"hidden", la tabla
+  no puede crecer. Necesitas cambiar el overflow
+  a "auto" en el contenedor de la tabla, NO en el
+  div padre.
+
+  Agrega esta clase al div que contiene la TABLA
+  (el que tiene background:#161616 y borderRadius:10):
+*/
+.admin-table-container {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;           /* scroll vertical en la tabla */
+  overflow-x: auto;           /* scroll horizontal en móvil */
+  -webkit-overflow-scrolling: touch;
+  border-radius: 10px;
+  border: 1px solid rgba(61,156,58,0.2);
+  background: #161616;
+}
+
+/* La tabla nunca se comprime */
+.admin-table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  min-width: 520px;           /* scroll horizontal si la pantalla es menor */
+}
+
+/* ══════════════════════════════════════
+   PAGINACIÓN — siempre visible
+══════════════════════════════════════ */
+.admin-pagination {
+  flex-shrink: 0 !important;  /* nunca se comprime */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 0 8px;
+  background: transparent;
+  /* En móvil, padding extra si hay bottom nav */
+}
+
+@media (max-width: 599px) {
+  .admin-pagination {
+    padding: 10px 0 6px;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  /* Botones de paginación más compactos en móvil */
+  .admin-pagination button {
+    padding: 5px 8px !important;
+    font-size: .75rem !important;
+    min-width: 32px;
+  }
+}
+
+/* ══════════════════════════════════════
+   SECTION WRAPPER — el div principal de
+   SectionConfiguration debe ser flex column
+   con overflow hidden para que el scroll
+   quede DENTRO de la tabla, no en todo el div.
+══════════════════════════════════════ */
+.admin-section-wrap {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;           /* el scroll va en .admin-table-container */
+  box-sizing: border-box;
+}
+
+@media (max-width: 599px) {
+  .admin-section-wrap {
+    padding: 12px;
+  }
+}
+
+/* ══════════════════════════════════════
+   TABLA — columnas en móvil
+══════════════════════════════════════ */
+@media (max-width: 599px) {
+  /* La columna Actions ocupa menos espacio */
+  .admin-table-container th:last-child,
+  .admin-table-container td:last-child {
+    width: 80px;
+  }
+
+  /* Fuente más pequeña en las celdas */
+  .admin-table-container td {
+    font-size: .8rem !important;
+    padding: 8px 10px !important;
+  }
+
+  .admin-table-container th {
+    padding: 10px !important;
+    font-size: .62rem !important;
+  }
+
+  /* Avatar más pequeño */
+  .admin-table-container .user-avatar-cell {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: .65rem !important;
+  }
+}
+
+/* ══════════════════════════════════════
+   INSTRUCCIONES DE USO
+   ══════════════════════════════════════
+   
+   En tu SectionConfiguration (QuestionsPanel o DataManager),
+   agrega las clases así:
+   
+   // Div exterior principal:
+   <div className="admin-section-wrap" style={{...tuEstiloActual}}>
+   
+   // Div que contiene la tabla (el negro con border):
+   <div className="admin-table-container">
+     <table>...</table>
+   </div>
+   
+   // Div de paginación:
+   <div className="admin-pagination" style={{...tuEstiloActual}}>
+     ...botones...
+   </div>
+   
+   </div>
+   
+   Con eso:
+   - La tabla hace scroll dentro de su contenedor
+   - La paginación siempre queda visible abajo
+   - En móvil la tabla hace scroll horizontal
+══════════════════════════════════════ */

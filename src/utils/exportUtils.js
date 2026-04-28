@@ -123,7 +123,22 @@ export const exportToPDF_Report = (config, data, filename = 'reporte_admin.pdf')
       if (currentY > 200) { doc.addPage(); currentY = 20; }
       doc.setFontSize(16); doc.text('Listado de Preguntas', 14, currentY);
       currentY += 8;
-      autoTable(doc, { startY: currentY, head: [['Fecha', 'Pregunta', 'Categoría', 'Estado']], body: data.preguntas.map(q => [new Date(q.created_at).toLocaleDateString(), q.pregunta.substring(0, 80), q.categoria || 'N/A', q.status]), theme: 'grid', headStyles: { fillColor: [61, 156, 58] } });
+      
+      const cleanPreguntas = data.preguntas.map(q => [
+        new Date(q.created_at).toLocaleDateString(), 
+        (q.pregunta || '').replace(/\s*\([^)]*\)/g, ""), 
+        q.categoria || 'N/A', 
+        q.status
+      ]);
+
+      autoTable(doc, { 
+        startY: currentY, 
+        head: [['Fecha', 'Pregunta', 'Categoría', 'Estado']], 
+        body: cleanPreguntas, 
+        theme: 'grid', 
+        headStyles: { fillColor: [61, 156, 58] },
+        columnStyles: { 1: { cellWidth: 100 } } // Dar más espacio a la pregunta
+      });
       currentY = doc.lastAutoTable.finalY + 15;
     }
     doc.save(filename);
