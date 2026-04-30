@@ -66,8 +66,7 @@ const HighlightText = ({ text, highlight }) => {
 // DASHBOARD
 // ─────────────────────────────────────────────
 const SectionDashboard = ({ stats }) => (
-  // flexShrink:0 + overflow:auto para que el dashboard haga scroll si hace falta
-  <div style={{ flex: "1 1 0", minHeight: 0, overflowY: "auto", padding: "40px" }}>
+  <div style={{ flex: "1 1 0", minHeight: 0, overflow: "hidden", padding: "40px", boxSizing: "border-box" }}>
     <h1 style={{
       fontFamily: "'Bebas Neue', sans-serif", fontSize: "2rem",
       fontWeight: 400, color: C.white, letterSpacing: ".05em", marginBottom: 32,
