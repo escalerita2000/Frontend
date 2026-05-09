@@ -96,14 +96,28 @@ export const updateProfile = async (data) => {
 
     if (!token) throw new Error("No autenticado");
 
+    const isFormData = data instanceof FormData;
+    
+    // Si es FormData, usamos POST + _method: PUT para que Laravel lo procese bien
+    const method = isFormData ? "POST" : "PUT";
+    if (isFormData) {
+        data.append("_method", "PUT");
+    }
+
+    const headers = {
+        "Authorization": `Bearer ${token}`,
+        "Accept": "application/json"
+    };
+
+    // NO poner Content-Type si es FormData, el navegador lo hace solo
+    if (!isFormData) {
+        headers["Content-Type"] = "application/json";
+    }
+
     const response = await fetch(`${API_URL}/user`, {
-        method: "PUT",
-        headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        },
-        body: JSON.stringify(data)
+        method: method,
+        headers: headers,
+        body: isFormData ? data : JSON.stringify(data)
     });
 
     const result = await response.json().catch(() => ({}));
@@ -113,4 +127,4 @@ export const updateProfile = async (data) => {
     }
 
     return result;
-};
+};

@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom"
 // Guards
 import { PrivateRoute } from "./PrivateRoute"
 import { RoleRoute }    from "./RoleRoute"
+import { useAuth }     from "../hooks/useAuth"
 
 // Layouts
 import DashboardLayout from "../layouts/DashboardLayout"
@@ -30,6 +31,7 @@ import Dashboard     from "../pages/Dashboard/Dashboard"
 import Statistics    from "../pages/Dashboard/Statistics"
 import Configuration from "../pages/Dashboard/Configuration"
 import Account from "../pages/Dashboard/Account"
+import ApprenticeAccount from "../pages/Chatbot/ApprenticeAccount"
 import DataManager   from "../pages/Database/DataManager"
 import QuestionsPanel from "../pages/Dashboard/QuestionsPanel"
 import PasswordGenerator from "../pages/Dashboard/PasswordGenerator"
@@ -38,6 +40,7 @@ import PasswordGenerator from "../pages/Dashboard/PasswordGenerator"
 import NotFound from "../pages/NotFound/NotFound"
 
 function AppRoutes() {
+  const { user } = useAuth()
 
 return (
     <Routes>
@@ -55,6 +58,7 @@ return (
         <Route element={<RoleRoute allowedRoles={['aprendiz', 'admin']} />}>
           <Route path="/chatbot" element={<Chatbot />} />
           <Route path="/chathistory" element={<ChatHistory />} />
+          <Route path="/account" element={user?.role === 'admin' ? <Account /> : <ApprenticeAccount />} />
         </Route>
 
           {/* ── Rutas del Instructor ───────────────────────────────────────── */}
