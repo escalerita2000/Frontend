@@ -11,9 +11,11 @@
 //  - Sin cambios en logica ni en estructura de datos
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { useNavigate } from "react-router-dom"                          // ← AGREGAR
+import { useNavigate } from "react-router-dom"
+import { useAuth } from "../../hooks/useAuth"
 import Sidebar from "../../components/Sidebar/Sidebar"
-import { sendMessage as apiSendMessage, getChatHistory } from "../../services/chatService"
+import { sendMessage as apiSendMessage, getChatHistory, getSessions, updateSession } from "../../services/chatService"
+import { FiVolume2, FiVolumeX } from "react-icons/fi"
 
 const SUGGESTIONS = [
   "¿Cómo puedo crear una cuenta?",
@@ -25,22 +27,29 @@ const SUGGESTIONS = [
 let chatCounter = 1
 
 function createNewChat() {
+  const sId = crypto.randomUUID()
   return {
-    id:        `chat-${Date.now()}`,
-    title:     `Chat ${chatCounter++}`,
+    id:        sId,
+    sessionId: sId,
+    title:     `Nuevo Chat ${chatCounter++}`,
     messages:  [],
     createdAt: new Date(),
   }
 }
 
 export default function Chatbot() {
+  const { user: authUser } = useAuth()
   const [chats,          setChats]          = useState([])
   const [activeChatId,   setActiveChatId]   = useState(null)
+  const [showArchived,   setShowArchived]   = useState(false)
+  const [isSessionsLoading, setIsSessionsLoading] = useState(false)
+  const [isMessagesLoading, setIsMessagesLoading] = useState(false)
   const [inputValue,     setInputValue]     = useState("")
   const [isTyping,       setIsTyping]       = useState(false)
   const [showSuggestions,setShowSuggestions]= useState(false)
   const [sidebarOpen,    setSidebarOpen]    = useState(true)
   const [isListening,    setIsListening]    = useState(false)
+  const [currentlySpeaking, setCurrentlySpeaking] = useState(null)
   const messagesEndRef = useRef(null)
   const inputRef       = useRef(null)
   const canvasRef      = useRef(null)
@@ -53,33 +62,27 @@ export default function Chatbot() {
 
   // ── Cargar historial del backend ──────────────────────────────────────────
   useEffect(() => {
-    const fetchHistory = async () => {
+    const loadSessions = async () => {
+      setIsSessionsLoading(true)
       try {
-        const historyResponse = await getChatHistory()
-        const history = historyResponse.data || historyResponse
-        if (history && Array.isArray(history)) {
-          const msgs = history.map((msg, index) => ({
-            id:   msg.id || Date.now() + index,
-            role: msg.role === 'user' ? 'user' : 'bot',
-            text: msg.content || msg.message || msg.text || "",
-            time: msg.created_at
-              ? new Date(msg.created_at).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })
-              : "",
+        const res = await getSessions(showArchived)
+        if (res.success && res.data) {
+          const loadedChats = res.data.map(s => ({
+            id: s.id,
+            sessionId: s.session_id,
+            title: s.title || "Nuevo Chat",
+            messages: [] 
           }))
-          if (msgs.length > 0) {
-            const chat = createNewChat()
-            chat.messages = msgs
-            chat.title = "Historial de Chat"
-            setChats([chat])
-            setActiveChatId(chat.id)
-          }
+          setChats(loadedChats)
         }
       } catch (error) {
-        console.error("Error cargando historial", error)
+        console.error("Error cargando sesiones", error)
+      } finally {
+        setIsSessionsLoading(false)
       }
     }
-    fetchHistory()
-  }, [])
+    loadSessions()
+  }, [showArchived])
 
   // ── Canvas animacion de fondo ─────────────────────────────────────────────
   useEffect(() => {
@@ -126,6 +129,7 @@ export default function Chatbot() {
     return () => {
       cancelAnimationFrame(animId)
       window.removeEventListener("resize", resize)
+      window.speechSynthesis.cancel()
     }
   }, [])
 
@@ -144,11 +148,39 @@ export default function Chatbot() {
     setTimeout(() => inputRef.current?.focus(), 100)
   }, [])
 
-  const handleSelectChat = useCallback((id) => {
+  const handleSelectChat = useCallback(async (id) => {
     setActiveChatId(id)
     setShowSuggestions(false)
+    
+    // Buscar el chat seleccionado
+    const chat = chats.find(c => c.id === id)
+    
+    // Solo cargamos si el chat no tiene mensajes aún y tiene un sessionId
+    if (chat && chat.messages.length === 0 && chat.sessionId) {
+      setIsMessagesLoading(true)
+      try {
+        const res = await getChatHistory(chat.sessionId)
+        if (res.success && res.data) {
+          const history = res.data.map(m => ({
+            id: m.id,
+            role: m.role === 'user' ? 'user' : 'bot',
+            text: m.content || m.message || "",
+            time: m.created_at 
+              ? new Date(m.created_at).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })
+              : ""
+          }))
+          
+          setChats(prev => prev.map(c => c.id === id ? { ...c, messages: history } : c))
+        }
+      } catch (err) {
+        console.error("Error cargando mensajes", err)
+      } finally {
+        setIsMessagesLoading(false)
+      }
+    }
+
     setTimeout(() => inputRef.current?.focus(), 100)
-  }, [])
+  }, [chats])
 
   const handleDeleteChat = useCallback((id) => {
     setChats((prev) => {
@@ -158,18 +190,41 @@ export default function Chatbot() {
     })
   }, [activeChatId])
 
+  const handleRenameChat = useCallback(async (id, newTitle) => {
+    setChats(prev => prev.map(c => c.id === id ? { ...c, title: newTitle } : c))
+    const chat = chats.find(c => c.id === id)
+    if (chat?.sessionId) {
+      try { await updateSession(chat.sessionId, { title: newTitle }) } catch (e) { console.error(e) }
+    }
+  }, [chats])
+
+  const handleArchiveChat = useCallback(async (id) => {
+    const chat = chats.find(c => c.id === id)
+    if (chat?.sessionId) {
+      try { 
+        await updateSession(chat.sessionId, { is_archived: !showArchived }) 
+        setChats(prev => prev.filter(c => c.id !== id))
+        if (activeChatId === id) setActiveChatId(null)
+      } catch (e) { console.error(e) }
+    }
+  }, [chats, showArchived, activeChatId])
+
   // ── Enviar mensaje ────────────────────────────────────────────────────────
   const sendMessage = useCallback(async (text) => {
     const trimmed = text.trim()
     if (!trimmed) return
 
     let targetId = activeChatId
+    let targetSessionId = null
 
     if (!targetId) {
       const chat = createNewChat()
       setChats((prev) => [chat, ...prev])
       setActiveChatId(chat.id)
       targetId = chat.id
+      targetSessionId = chat.sessionId
+    } else {
+      targetSessionId = chats.find(c => c.id === targetId)?.sessionId
     }
 
     const userMsg = {
@@ -198,7 +253,7 @@ export default function Chatbot() {
     setIsTyping(true)
 
     try {
-      const response = await apiSendMessage(trimmed)
+      const response = await apiSendMessage(trimmed, targetSessionId)
       const respuestaBot = response.data ? response.data.respuesta : response.respuesta
       setChats((prev) =>
         prev.map((c) =>
@@ -228,7 +283,7 @@ export default function Chatbot() {
     } finally {
       setIsTyping(false)
     }
-  }, [activeChatId])
+  }, [activeChatId, chats])
 
   const toggleListening = useCallback(() => {
     if (isListening) {
@@ -280,6 +335,28 @@ export default function Chatbot() {
     }
   }, [isListening])
 
+  const handleSpeak = useCallback((text, msgId) => {
+    if (currentlySpeaking === msgId) {
+      window.speechSynthesis.cancel()
+      setCurrentlySpeaking(null)
+      return
+    }
+
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    
+    const voices = window.speechSynthesis.getVoices()
+    const spanishVoice = voices.find(v => v.lang.startsWith('es'))
+    if (spanishVoice) utterance.voice = spanishVoice
+    else utterance.lang = 'es-ES'
+
+    utterance.onend = () => setCurrentlySpeaking(null)
+    utterance.onerror = () => setCurrentlySpeaking(null)
+
+    setCurrentlySpeaking(msgId)
+    window.speechSynthesis.speak(utterance)
+  }, [currentlySpeaking])
+
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
@@ -288,7 +365,8 @@ export default function Chatbot() {
   }
 
   const activeChat = chats.find((c) => c.id === activeChatId) || null
-  const isWelcome  = !activeChat || activeChat.messages.length === 0
+  // Solo mostramos bienvenida si NO hay un chat seleccionado
+  const isWelcome  = !activeChatId;
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -301,9 +379,14 @@ export default function Chatbot() {
         onNewChat={handleNewChat}
         onSelectChat={handleSelectChat}
         onDeleteChat={handleDeleteChat}
+        onRenameChat={handleRenameChat}
+        onArchiveChat={handleArchiveChat}
+        showArchived={showArchived}
+        onToggleArchive={() => setShowArchived(!showArchived)}
+        isLoading={isSessionsLoading}
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen((o) => !o)}
-        onViewHistory={handleViewHistory}                               // ← AGREGAR
+        onViewHistory={handleViewHistory}
       />
 
       <main className={`chat-main ${sidebarOpen ? "sidebar-open" : ""}`}>
@@ -388,7 +471,16 @@ export default function Chatbot() {
             </div>
 
             <div className="messages-area">
-              {activeChat.messages.map((msg) => (
+              {isMessagesLoading ? (
+                <div className="messages-loader" style={{ 
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 15, opacity: 0.7 
+                }}>
+                  <div className="skeleton-pulse" style={{ width: 40, height: 40, borderRadius: '50%' }} />
+                  <span style={{ fontSize: '0.9rem', letterSpacing: '1px' }}>CARGANDO CONVERSACIÓN...</span>
+                </div>
+              ) : (
+                <>
+                  {activeChat.messages.map((msg) => (
                 <div key={msg.id} className={`message-row ${msg.role}`}>
                   {msg.role === "bot" && (
                     <div className="avatar bot-avatar">
@@ -399,15 +491,34 @@ export default function Chatbot() {
                     </div>
                   )}
                   <div className="bubble-wrap">
-                    <div className={`bubble ${msg.role}`}>{msg.text}</div>
+                    <div className={`bubble ${msg.role}`}>
+                      {msg.text}
+                      {msg.role === "bot" && (
+                        <button 
+                          className={`speak-btn ${currentlySpeaking === msg.id ? 'speaking' : ''}`}
+                          onClick={() => handleSpeak(msg.text, msg.id)}
+                          title="Escuchar mensaje"
+                        >
+                          {currentlySpeaking === msg.id ? <FiVolumeX /> : <FiVolume2 />}
+                        </button>
+                      )}
+                    </div>
                     <span className="msg-time">{msg.time}</span>
                   </div>
                   {msg.role === "user" && (
-                    <div className="avatar user-avatar">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <circle cx="12" cy="8" r="4"/>
-                        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                      </svg>
+                    <div className="avatar user-avatar" style={{ overflow: 'hidden', border: '1px solid rgba(45,90,39,0.2)' }}>
+                      {(authUser?.avatar_url || authUser?.avatar || authUser?.photo) ? (
+                        <img 
+                          src={authUser.avatar_url || authUser.avatar || authUser.photo} 
+                          alt="Me" 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                        />
+                      ) : (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <circle cx="12" cy="8" r="4"/>
+                          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                        </svg>
+                      )}
                     </div>
                   )}
                 </div>
@@ -422,11 +533,16 @@ export default function Chatbot() {
                     </svg>
                   </div>
                   <div className="bubble bot typing-bubble">
-                    <span className="dot"/><span className="dot"/><span className="dot"/>
+                    <div className="typing-dots">
+                      <span className="dot"/><span className="dot"/><span className="dot"/>
+                    </div>
+                    <span className="typing-text">AVIS está pensando...</span>
                   </div>
                 </div>
               )}
-              <div ref={messagesEndRef}/>
+                  <div ref={messagesEndRef}/>
+                </>
+              )}
             </div>
 
             <div className="input-bar-wrap">

@@ -10,15 +10,17 @@
 //   // Al fondo del sidebar, reemplaza tu seccion de usuario actual:
 //   <UserMenu />
 
-import { useState, useRef, useEffect } from 'react'
-import { useNavigate }                 from 'react-router-dom'
-import { useAuth }                     from '../../hooks/useAuth'
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+
 
 const UserMenu = () => {
-  const { user, logout }  = useAuth()
-  const navigate          = useNavigate()
-  const [open, setOpen]   = useState(false)
-  const containerRef      = useRef(null)
+  const { user, logout } = useAuth();
+
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef(null);
 
   // Cerrar al hacer clic fuera
   useEffect(() => {

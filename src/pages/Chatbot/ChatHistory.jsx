@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
+import { useAuth } from "../../hooks/useAuth"
 import { getChatHistory } from "../../services/chatService"
 
 /* ══════════════════════════════════════
@@ -111,27 +112,39 @@ const AccordionItem = ({ title, messages, isOpen, onToggle }) => {
                 {/* Avatar */}
                 <div style={{
                   width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
+                  overflow: "hidden",
                   background: msg.role === "user" ? "#c7c3e8" : "#d4edda",
                   display: "flex", alignItems: "center", justifyContent: "center",
+                  border: "1px solid rgba(61,156,58,.2)"
                 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={msg.role === "user" ? "#5c5898" : "#2a6e28"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="8" r="4"/>
-                    <path d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8"/>
-                  </svg>
+                  {msg.role === "user" && msg.avatar ? (
+                    <img src={msg.avatar} alt="u" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={msg.role === "user" ? "#5c5898" : "#2a6e28"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="8" r="4"/>
+                      <path d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8"/>
+                    </svg>
+                  )}
                 </div>
                 {/* Burbuja */}
                 <div style={{
                   maxWidth: "70%",
-                  padding: "8px 12px",
-                  borderRadius: msg.role === "user" ? "12px 12px 4px 12px" : "12px 12px 12px 4px",
-                  background: msg.role === "user" ? "#e8e4f8" : "#eaf7ea",
-                  color: "#2b2b2b",
+                  padding: "10px 14px",
+                  borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                  background: msg.role === "user" ? "#3d9c3a" : "#f0f4f0",
+                  color: msg.role === "user" ? "#fff" : "#2b2b2b",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.04)",
                   fontFamily: "'Outfit', sans-serif",
                   fontSize: ".84rem", lineHeight: 1.5,
                 }}>
                   {msg.text || msg.content || msg.message || ""}
                   {msg.time && (
-                    <div style={{ fontSize: ".65rem", color: "#888", marginTop: 4, textAlign: msg.role === "user" ? "right" : "left" }}>
+                    <div style={{ 
+                      fontSize: ".65rem", 
+                      color: msg.role === "user" ? "rgba(255,255,255,0.7)" : "#888", 
+                      marginTop: 4, 
+                      textAlign: msg.role === "user" ? "right" : "left" 
+                    }}>
                       {msg.time}
                     </div>
                   )}
@@ -196,11 +209,20 @@ const FALLBACK_HISTORY = [
    COMPONENT PRINCIPAL
 ══════════════════════════════════════ */
 export default function ChatHistory() {
+  const { user: authUser } = useAuth()
   const [history,    setHistory]    = useState([])
-  const [openId,     setOpenId]     = useState("h1") // primer item abierto por defecto
+  const [openId,     setOpenId]     = useState(null) 
   const [loading,    setLoading]    = useState(true)
   const [userPhoto,  setUserPhoto]  = useState(null)
   const navigate = useNavigate()
+
+  // Sincronizar foto desde el contexto de autenticación
+  useEffect(() => {
+    if (authUser) {
+      const avatar = authUser.avatar_url || authUser.avatar || authUser.photo || authUser.profile_photo_url
+      setUserPhoto(avatar)
+    }
+  }, [authUser])
 
   /* ── Cargar historial desde API ── */
   useEffect(() => {
@@ -210,10 +232,8 @@ export default function ChatHistory() {
         const data = res.data || res
 
         if (Array.isArray(data) && data.length > 0) {
-          // Agrupar mensajes por sesión/chat si la API los devuelve así
-          // Si la API devuelve un array plano de mensajes, los agrupamos en un solo chat
+          // Si la API ya lo devuelve agrupado (futura mejora)
           if (data[0]?.messages) {
-            // Ya viene agrupado por chats
             setHistory(data.map((chat, i) => ({
               id:       chat.id || `h${i}`,
               title:    chat.title || `Chat ${i + 1}`,
@@ -221,19 +241,40 @@ export default function ChatHistory() {
             })))
             setOpenId(data[0]?.id || "h0")
           } else {
-            // Array plano de mensajes — lo envolvemos en un solo acordeón
-            setHistory([{
-              id: "h0",
-              title: "HISTORIAL DE AVIS",
-              messages: data.map((msg, idx) => ({
+            // AGRUPAR POR SESSION_ID (Lógica Premium)
+            const sessions = {}
+            const userAvatar = authUser?.avatar_url || authUser?.avatar || authUser?.photo || authUser?.profile_photo_url
+
+            data.forEach((msg) => {
+              const sId = msg.session_id || 'legacy-session'
+              if (!sessions[sId]) sessions[sId] = []
+              
+              sessions[sId].push({
                 role: msg.role === "user" ? "user" : "bot",
                 text: msg.content || msg.message || msg.text || "",
+                avatar: msg.role === "user" ? userAvatar : null,
                 time: msg.created_at
                   ? new Date(msg.created_at).toLocaleTimeString("es-CO", { hour:"2-digit", minute:"2-digit" })
                   : "",
-              })),
-            }])
-            setOpenId("h0")
+              })
+            })
+
+            const groupedHistory = Object.keys(sessions).map((sId) => {
+              const msgs = sessions[sId]
+              const firstUserMsg = msgs.find(m => m.role === 'user')?.text
+              const title = firstUserMsg 
+                ? firstUserMsg.slice(0, 30).toUpperCase() + (firstUserMsg.length > 30 ? "…" : "")
+                : "CONSULTA SIN TÍTULO"
+
+              return {
+                id: sId,
+                title: title,
+                messages: msgs
+              }
+            }).reverse() // Mostrar los más nuevos primero
+
+            setHistory(groupedHistory)
+            if (groupedHistory.length > 0) setOpenId(groupedHistory[0].id)
           }
         } else {
           // Sin datos — usar fallback para mostrar la UI
@@ -249,14 +290,7 @@ export default function ChatHistory() {
 
     fetchHistory()
 
-    // Intentar obtener foto de perfil del usuario desde localStorage
-    try {
-      const user = JSON.parse(localStorage.getItem("user") || "{}")
-      if (user.photo || user.avatar || user.profilePicture) {
-        setUserPhoto(user.photo || user.avatar || user.profilePicture)
-      }
-    } catch {}
-  }, [])
+  }, [authUser])
 
   const toggleItem = (id) => setOpenId(prev => prev === id ? null : id)
 
