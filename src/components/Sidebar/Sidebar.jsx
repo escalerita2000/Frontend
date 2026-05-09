@@ -10,20 +10,55 @@
 
 import { useState }  from "react"
 import UserMenu      from "../UserMenu/UserMenu"
+import { FiEdit2, FiPackage, FiTrash2, FiCheck, FiX } from "react-icons/fi"
+import { useTheme } from "../../context/ThemeContext"
 
-export default function Sidebar({ chats, 
+export default function Sidebar({ 
+  chats, 
   activeChatId, 
   onNewChat, 
   onSelectChat, 
   onDeleteChat, 
+  onRenameChat,
+  onArchiveChat,
+  showArchived,
+  onToggleArchive,
+  isLoading,
   isOpen, 
   onToggle, 
   onViewHistory 
 }) {
   const [hoveredId, setHoveredId] = useState(null)
+  const [editingId, setEditingId] = useState(null)
+  const [editValue, setEditValue] = useState("")
+  const { theme, toggleTheme } = useTheme()
+
+  const handleStartEdit = (chat) => {
+    setEditingId(chat.id)
+    setEditValue(chat.title)
+  }
+
+  const handleSaveEdit = (id) => {
+    if (editValue.trim()) {
+      onRenameChat(id, editValue.trim())
+    }
+    setEditingId(null)
+  }
 
   return (
     <>
+      <style>{`
+        @keyframes skeletonPulse {
+          0% { opacity: 0.3; }
+          50% { opacity: 0.6; }
+          100% { opacity: 0.3; }
+        }
+        .skeleton-pulse {
+          animation: skeletonPulse 1.5s ease-in-out infinite;
+          background: rgba(255,255,255,0.05);
+          border-radius: 8px;
+        }
+      `}</style>
       {/* Toggle hamburger (always visible) */}
       <button className="sidebar-toggle" onClick={onToggle} title="Menú">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -35,14 +70,23 @@ export default function Sidebar({ chats,
 
       <aside className={`sidebar ${isOpen ? "open" : "closed"}`}>
         <div className="sidebar-top">
-          {/* Hamburger inside sidebar */}
-          <button className="sidebar-toggle-inner" onClick={onToggle} title="Cerrar menú">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="3" y1="6" x2="21" y2="6"/>
-              <line x1="3" y1="12" x2="21" y2="12"/>
-              <line x1="3" y1="18" x2="21" y2="18"/>
-            </svg>
-          </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* Hamburger inside sidebar */}
+            <button className="sidebar-toggle-inner" onClick={onToggle} title="Cerrar menú">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            </button>
+            <button 
+              onClick={toggleTheme} 
+              style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.85)', cursor: 'pointer', fontSize: '18px', padding: '8px 16px', transition: 'color 0.2s' }} 
+              title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
+          </div>
 
           {/* New chat button */}
           <button className="new-chat-btn" onClick={onNewChat}>
@@ -55,18 +99,18 @@ export default function Sidebar({ chats,
           </button>
 
           {/* Archive button */}
-          <button className="archive-btn">
+          <button className={`archive-btn ${showArchived ? 'active' : ''}`} onClick={onToggleArchive}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="21 8 21 21 3 21 3 8"/>
               <rect x="1" y="3" width="22" height="5"/>
               <line x1="10" y1="12" x2="14" y2="12"/>
             </svg>
-            <span>Archivar</span>
+            <span>{showArchived ? "Volver a chats" : "Archivados"}</span>
           </button>
 
           {/* History section */}
           <div className="history-section">
-            <div className="history-label" onClick={() => setHistOpen(o => !o)}>
+            <div className="history-label">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/>
               </svg>
@@ -98,35 +142,73 @@ export default function Sidebar({ chats,
 
 
             <div className="chat-list">
-              {chats.length === 0 && (
+              {isLoading ? (
+                // Esqueleto de carga con animación premium
+                [1, 2, 3, 4].map(i => (
+                  <div key={i} className="chat-item skeleton-pulse" style={{ height: 42, marginBottom: 8, pointerEvents: 'none' }}>
+                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', marginRight: 12 }} />
+                    <div style={{ flex: 1, height: 8, background: 'rgba(255,255,255,0.1)', borderRadius: 4 }} />
+                  </div>
+                ))
+              ) : chats.length === 0 ? (
                 <p className="no-chats">Sin chats aún</p>
+              ) : (
+                chats.map((chat) => (
+                  <div
+                    key={chat.id}
+                    className={`chat-item ${chat.id === activeChatId ? "active" : ""}`}
+                    onClick={() => onSelectChat(chat.id)}
+                    onMouseEnter={() => setHoveredId(chat.id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                  >
+                    <span className="chat-dot" />
+                    
+                    {editingId === chat.id ? (
+                      <input 
+                        autoFocus
+                        className="edit-chat-input"
+                        value={editValue}
+                        onChange={e => setEditValue(e.target.value)}
+                        onBlur={() => handleSaveEdit(chat.id)}
+                        onKeyDown={e => e.key === 'Enter' && handleSaveEdit(chat.id)}
+                        onClick={e => e.stopPropagation()}
+                        style={{
+                          background: 'transparent', border: 'none', borderBottom: '1px solid #fff',
+                          color: '#fff', fontSize: '13px', outline: 'none', width: '100%'
+                        }}
+                      />
+                    ) : (
+                      <span className="chat-item-title">{chat.title}</span>
+                    )}
+
+                    {hoveredId === chat.id && editingId !== chat.id && (
+                      <div className="chat-actions" style={{ display: 'flex', gap: 6 }}>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleStartEdit(chat) }} 
+                          style={{ background:'transparent', border:'none', color:'rgba(255,255,255,.5)', cursor:'pointer', padding:2 }}
+                          title="Renombrar"
+                        >
+                          <FiEdit2 size={12}/>
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); onArchiveChat(chat.id) }} 
+                          style={{ background:'transparent', border:'none', color:'rgba(255,255,255,.5)', cursor:'pointer', padding:2 }}
+                          title={showArchived ? "Desarchivar" : "Archivar"}
+                        >
+                          <FiPackage size={12}/>
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); onDeleteChat(chat.id) }} 
+                          style={{ background:'transparent', border:'none', color:'rgba(255,255,255,.5)', cursor:'pointer', padding:2 }}
+                          title="Eliminar"
+                        >
+                          <FiTrash2 size={12}/>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))
               )}
-              {chats.map((chat) => (
-                <div
-                  key={chat.id}
-                  className={`chat-item ${chat.id === activeChatId ? "active" : ""}`}
-                  onClick={() => onSelectChat(chat.id)}
-                  onMouseEnter={() => setHoveredId(chat.id)}
-                  onMouseLeave={() => setHoveredId(null)}
-                >
-                  <span className="chat-dot" />
-                  <span className="chat-item-title">{chat.title}</span>
-                  {hoveredId === chat.id && (
-                    <button
-                      className="delete-chat-btn"
-                      onClick={(e) => { e.stopPropagation(); onDeleteChat(chat.id) }}
-                      title="Eliminar chat"
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="3 6 5 6 21 6"/>
-                        <path d="M19 6l-1 14H6L5 6"/>
-                        <path d="M10 11v6M14 11v6"/>
-                        <path d="M9 6V4h6v2"/>
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              ))}
             </div>
           </div>
         </div>
