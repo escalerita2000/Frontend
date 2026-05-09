@@ -2178,7 +2178,19 @@ html, body, #root {
   flex-shrink: 0;
 }
 .mic-btn:hover { color: var(--green-mid); background: var(--off-white); }
+.mic-btn.listening {
+  color: var(--green) !important;
+  background: rgba(61, 156, 58, 0.1) !important;
+  animation: mic-pulse 1.5s infinite;
+  border-radius: 50%;
+}
 .mic-btn svg { width: 18px; height: 18px; }
+
+@keyframes mic-pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(61, 156, 58, 0.4); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(61, 156, 58, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(61, 156, 58, 0); }
+}
 
 .chat-input {
   flex: 1;

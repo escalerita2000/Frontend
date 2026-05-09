@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { useOutletContext, useNavigate } from "react-router-dom"
 import { useAuth } from "../../hooks/useAuth"
 import { getAuthUser, updateProfile } from "../../services/authService"
-import { FiUser, FiMail, FiLock, FiShield, FiSave } from "react-icons/fi"
+import { FiUser, FiMail, FiLock, FiShield, FiSave, FiCamera } from "react-icons/fi"
 
 const C = {
   black:    "#0a0a0a",
@@ -21,7 +21,7 @@ const C = {
 const Account = () => {
   const { showToast } = useOutletContext()
   const navigate = useNavigate()
-  const { user: contextUser, logout } = useAuth()
+  const { user: contextUser, setUser: setGlobalUser, logout } = useAuth()
   
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -33,6 +33,9 @@ const Account = () => {
     password: '',
     password_confirmation: ''
   })
+  
+  const [avatarFile, setAvatarFile] = useState(null)
+  const [previewUrl, setPreviewUrl] = useState(null)
 
   useEffect(() => {
     // 1. Cargar datos iniciales desde el contexto (rápido)
@@ -72,35 +75,56 @@ const Account = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        showToast('error', 'La imagen no debe superar los 2MB')
+        return
+      }
+      setAvatarFile(file)
+      setPreviewUrl(URL.createObjectURL(file))
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSaving(true)
     try {
-      const updateData = {
-        name: formData.name,
-        email: formData.email
+      const data = new FormData()
+      data.append('name', formData.name)
+      data.append('email', formData.email)
+      
+      if (avatarFile) {
+        data.append('avatar', avatarFile)
       }
       
       if (formData.password) {
         if (formData.password !== formData.password_confirmation) {
           throw new Error("Las contraseñas no coinciden")
         }
-        updateData.password = formData.password
-        updateData.password_confirmation = formData.password_confirmation
+        data.append('password', formData.password)
+        data.append('password_confirmation', formData.password_confirmation)
       }
 
-      const result = await updateProfile(updateData)
+      const result = await updateProfile(data)
       const updatedUser = result.user || result
       
       setUser(updatedUser)
+      setGlobalUser(updatedUser)
+      setPreviewUrl(null)
+      setAvatarFile(null)
       
-      // Actualizar localStorage para persistencia (usamos la misma clave que AuthContext)
+      // Actualizar localStorage para persistencia
       localStorage.setItem('authUser', JSON.stringify(updatedUser))
       
       showToast('success', 'Perfil actualizado correctamente')
       setFormData(prev => ({ ...prev, password: '', password_confirmation: '' }))
     } catch (error) {
-      showToast('error', error.message || 'Error al actualizar el perfil')
+      // Intentamos extraer el mensaje detallado del backend si existe
+      const detail = error.response?.data?.message || error.message;
+      showToast('error', detail || 'Error al actualizar el perfil')
+      console.error("Error completo:", error);
     } finally {
       setSaving(false)
     }
@@ -153,23 +177,64 @@ const Account = () => {
           textAlign: 'center',
           height: 'fit-content'
         }}>
-          <div style={{
-            width: '100px',
-            height: '100px',
-            borderRadius: '50%',
-            background: C.greenBg,
-            border: `3px solid ${C.green}`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '2.5rem',
-            fontWeight: 700,
-            color: '#fff',
-            fontFamily: "'Bebas Neue', sans-serif",
-            marginBottom: '16px',
-            boxShadow: `0 0 20px ${C.green}33`
-          }}>
-            {initials}
+          <div style={{ position: 'relative', marginBottom: '16px' }}>
+            <div style={{
+              width: '110px',
+              height: '110px',
+              borderRadius: '50%',
+              background: C.greenBg,
+              border: `3px solid ${C.green}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '2.5rem',
+              fontWeight: 700,
+              color: '#fff',
+              fontFamily: "'Bebas Neue', sans-serif",
+              boxShadow: `0 0 20px ${C.green}33`,
+              overflow: 'hidden'
+            }}>
+              {previewUrl || user?.avatar_url ? (
+                <img 
+                  src={previewUrl || user.avatar_url} 
+                  alt="Avatar" 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                />
+              ) : (
+                initials
+              )}
+            </div>
+            
+            <label 
+              htmlFor="avatar-upload"
+              style={{
+                position: 'absolute',
+                bottom: '5px',
+                right: '5px',
+                background: C.green,
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                border: `2px solid ${C.darkCard}`,
+                color: '#fff',
+                transition: 'transform 0.2s'
+              }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <FiCamera size={16} />
+              <input 
+                id="avatar-upload" 
+                type="file" 
+                accept="image/*" 
+                onChange={handleAvatarChange} 
+                style={{ display: 'none' }} 
+              />
+            </label>
           </div>
           <h2 style={{ color: '#fff', fontSize: '1.2rem', margin: '0 0 4px 0' }}>{displayName}</h2>
           <p style={{ color: C.gray, fontSize: '14px', margin: '0 0 16px 0' }}>{displayEmail}</p>

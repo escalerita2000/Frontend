@@ -40,9 +40,11 @@ export default function Chatbot() {
   const [isTyping,       setIsTyping]       = useState(false)
   const [showSuggestions,setShowSuggestions]= useState(false)
   const [sidebarOpen,    setSidebarOpen]    = useState(true)
+  const [isListening,    setIsListening]    = useState(false)
   const messagesEndRef = useRef(null)
   const inputRef       = useRef(null)
   const canvasRef      = useRef(null)
+  const recognitionRef = useRef(null)
   const navigate = useNavigate()                                        // ← AGREGAR
  
   const handleViewHistory = useCallback(() => {                         // ← AGREGAR
@@ -228,6 +230,56 @@ export default function Chatbot() {
     }
   }, [activeChatId])
 
+  const toggleListening = useCallback(() => {
+    if (isListening) {
+      recognitionRef.current?.stop()
+      setIsListening(false)
+      return
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      alert("Tu navegador no soporta el reconocimiento de voz o está bloqueado.")
+      return
+    }
+
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'es-CO'
+    recognition.continuous = false
+    recognition.interimResults = false
+
+    recognition.onstart = () => setIsListening(true)
+    recognition.onend = () => setIsListening(false)
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error", event.error)
+      setIsListening(false)
+      
+      const errorMessages = {
+        'network': "Error de red: El servicio de voz no está disponible. Si usas una IP (192.168...), intenta usar 'localhost' o asegúrate de tener una conexión a internet estable.",
+        'not-allowed': "Permiso de micrófono denegado. Por favor, habilítalo en la configuración de tu navegador.",
+        'service-not-allowed': "El servicio de voz está bloqueado por el navegador o el sistema operativo.",
+        'no-speech': "No se detectó ninguna voz. Intenta de nuevo."
+      }
+      
+      alert(errorMessages[event.error] || `Error de voz: ${event.error}. Asegúrate de usar HTTPS o localhost.`)
+    }
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript
+      setInputValue(prev => {
+        const newVal = prev + (prev ? " " : "") + transcript
+        return newVal
+      })
+    }
+
+    recognitionRef.current = recognition
+    try {
+      recognition.start()
+    } catch (err) {
+      console.error("Error starting recognition", err)
+      setIsListening(false)
+    }
+  }, [isListening])
+
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
@@ -279,7 +331,11 @@ export default function Chatbot() {
 
             <div className="input-card welcome-input">
               <div className="input-row">
-                <button className="mic-btn" title="Voz">
+                <button 
+                  className={`mic-btn ${isListening ? 'listening' : ''}`} 
+                  onClick={toggleListening}
+                  title={isListening ? "Detener" : "Voz"}
+                >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
                     <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
@@ -376,7 +432,11 @@ export default function Chatbot() {
             <div className="input-bar-wrap">
               <div className="input-card chat-input-card">
                 <div className="input-row">
-                  <button className="mic-btn" title="Voz">
+                  <button 
+                    className={`mic-btn ${isListening ? 'listening' : ''}`} 
+                    onClick={toggleListening}
+                    title={isListening ? "Detener" : "Voz"}
+                  >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
                       <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
