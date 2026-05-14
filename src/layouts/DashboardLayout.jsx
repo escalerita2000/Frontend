@@ -166,7 +166,7 @@ export default function DashboardLayout() {
     if (path.includes("/dashboard"))          return "app"
     if (path.includes("/database") || path.includes("/configuration") || path.includes("/users")) return "cfg"
     if (path.includes("/questions"))          return "qns"
-    if (path.includes("/errors"))             return "err"
+    if (path.includes("/suggestions"))        return "sug"
     if (path.includes("/account"))            return "acc"
     if (path.includes("/password-generator")) return "pwd"
     return null
@@ -178,7 +178,7 @@ export default function DashboardLayout() {
     if      (id === "app") navigate("/dashboard")
     else if (id === "cfg") navigate("/database")
     else if (id === "qns") navigate("/questions")
-    else if (id === "err") navigate("/errors")
+    else if (id === "sug") navigate("/suggestions")
     else if (id === "acc") navigate("/account")
     else if (id === "pwd") navigate("/password-generator")
   }
@@ -203,7 +203,7 @@ export default function DashboardLayout() {
     { id:"app", label:"Application",   icon:iconApp },
     { id:"cfg", label:"Config",        icon:iconCfg },
     { id:"qns", label:"Questions",     icon:iconQns },
-    { id:"err", label:"Sugerencias",   icon:iconErr },
+    { id:"sug", label:"Sugerencias",   icon:iconErr },
     { id:"acc", label:"My Account",    icon:iconAcc },
     { id:"pwd", label:"Password Gen",  icon:iconPwd },
   ]

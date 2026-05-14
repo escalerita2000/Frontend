@@ -36,6 +36,7 @@ import ApprenticeAccount from "../pages/Chatbot/ApprenticeAccount"
 import DataManager   from "../pages/Database/DataManager"
 import QuestionsPanel from "../pages/Dashboard/QuestionsPanel"
 import PasswordGenerator from "../pages/Dashboard/PasswordGenerator"
+import AdminSugerencias from "../pages/Dashboard/Sugerencias"
 
 // Utilidades
 import NotFound from "../pages/NotFound/NotFound"
@@ -86,7 +87,8 @@ return (
             <Route path="/account"       element={<Account />} />
             <Route path="/database"      element={<DataManager />} />
             <Route path="/password-generator" element={<PasswordGenerator />} />
-            <Route path="/errors"        element={<div style={{padding:40, color:'#888'}}>Próximamente... Panel de Errores</div>} />
+            <Route path="/suggestions"   element={<AdminSugerencias />} />
+            <Route path="/errors"        element={<AdminSugerencias />} />
             <Route path="/users"         element={<Navigate to="/database" replace />} />
           </Route>
         </Route>

@@ -239,3 +239,91 @@ export const deleteUser = async (id) => {
 
     return await response.json();
 };
+
+// ==========================================
+// SUGERENCIAS
+// ==========================================
+
+/**
+ * Enviar una sugerencia (ruta pública — sin token).
+ */
+export const sendSugerencia = async (data) => {
+    const response = await fetch(`${API_URL}/sugerencias`, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        // Laravel devuelve errores de validación en err.errors
+        if (err.errors) {
+            const firstError = Object.values(err.errors)[0][0];
+            throw new Error(firstError);
+        }
+        throw new Error(err.message || "No se pudo enviar la sugerencia");
+    }
+
+    return await response.json();
+};
+
+/**
+ * Listar sugerencias (solo admin).
+ */
+export const getSugerencias = async ({ estado = "todas", tipo = "todos", search = "", page = 1 } = {}) => {
+    const params = new URLSearchParams();
+    if (estado !== "todas") params.append("estado", estado);
+    if (tipo !== "todos")   params.append("tipo", tipo);
+    if (search)             params.append("search", search);
+    params.append("page", page);
+
+    const response = await fetch(`${API_URL}/sugerencias?${params.toString()}`, {
+        method: "GET",
+        headers: getHeaders(false),
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || "Error al obtener sugerencias");
+    }
+
+    return await response.json();
+};
+
+/**
+ * Cambiar estado de una sugerencia (solo admin).
+ */
+export const updateSugerenciaEstado = async (id, estado) => {
+    const response = await fetch(`${API_URL}/sugerencias/${id}`, {
+        method: "PUT",
+        headers: getHeaders(true),
+        body: JSON.stringify({ estado }),
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || "Error al actualizar estado");
+    }
+
+    return await response.json();
+};
+
+/**
+ * Eliminar una sugerencia (solo admin).
+ */
+export const deleteSugerencia = async (id) => {
+    const response = await fetch(`${API_URL}/sugerencias/${id}`, {
+        method: "DELETE",
+        headers: getHeaders(false),
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || "Error al eliminar sugerencia");
+    }
+
+    return await response.json();
+};

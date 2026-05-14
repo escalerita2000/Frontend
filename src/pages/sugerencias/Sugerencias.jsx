@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
+import { sendSugerencia } from "../../services/apiExtras"
 import "./sugerencias.css"
 
 const TIPOS = [
@@ -207,12 +208,11 @@ export default function Sugerencias() {
     setLoading(true)
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1200))
-
+      await sendSugerencia(form)
       setSent(true)
     } catch (error) {
       setErrors({
-        general: "No se pudo enviar la sugerencia",
+        general: error.message || "No se pudo enviar la sugerencia. Intenta de nuevo.",
       })
     } finally {
       setLoading(false)
