@@ -21,6 +21,7 @@ import RecoverPassword   from "../pages/Auth/RecoverPassword"
 import RecoveryPassword  from "../pages/Auth/RecoveryPassword"
 import ResetPassword     from "../pages/Auth/ResetPassword"
 import ChatbotInvitado   from "../pages/Chatbot/ChatbotInvitado"
+import Sugerencias       from "../pages/sugerencias/Sugerencias"
 
 // Páginas privadas — todos los roles autenticados
 import Chatbot from "../pages/Chatbot/Chatbot"
@@ -52,7 +53,7 @@ return (
       <Route path="/RecoveryPassword"element={<RecoveryPassword />} />
       <Route path="/ResetPassword"   element={<ResetPassword />} />
       <Route path="/ChatbotInvitado" element={<ChatbotInvitado />} />
-
+      <Route path="/Sugerencias"     element={<Sugerencias />} />
       {/* ── Rutas privadas: aprendiz + admin ───────────────────────────── */}
       <Route element={<PrivateRoute />}>
         <Route element={<RoleRoute allowedRoles={['aprendiz', 'admin']} />}>
